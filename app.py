@@ -70,6 +70,50 @@ def find_skins(
     return results
 
 
+def better_ball_scores(
+    teams: list[list[Player]],
+    holes: list[Hole],
+) -> dict:
+    """For each hole, sum each team's 2 lowest net scores. Lowest team total wins."""
+    hole_results = []
+    team_totals  = [0] * len(teams)
+
+    for hole in holes:
+        team_holes = []
+        for ti, team in enumerate(teams):
+            net_scores = []
+            for player in team:
+                gross   = player.scores[hole.number - 1]
+                strokes = strokes_received(player.handicap, hole.handicap_rating)
+                net_scores.append({
+                    "name": player.name, "gross": gross,
+                    "net": gross - strokes, "strokes": strokes,
+                })
+            net_scores.sort(key=lambda x: x["net"])
+            best_two   = net_scores[:2]
+            team_score = sum(s["net"] for s in best_two) if len(best_two) >= 2 else None
+            if team_score is not None:
+                team_totals[ti] += team_score
+            team_holes.append({"team_score": team_score, "contributors": best_two})
+
+        low = min((t["team_score"] for t in team_holes if t["team_score"] is not None), default=None)
+        for th in team_holes:
+            th["winner"] = (th["team_score"] == low and low is not None)
+
+        hole_results.append({
+            "number": hole.number, "par": hole.par,
+            "handicap_rating": hole.handicap_rating,
+            "teams": team_holes,
+        })
+
+    min_total = min(team_totals)
+    return {
+        "holes":       hole_results,
+        "team_totals": team_totals,
+        "min_total":   min_total,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Claude vision extraction
 # ---------------------------------------------------------------------------
@@ -220,6 +264,40 @@ def calculate():
                 tally[nw]["net"] += 1
 
         return jsonify({"success": True, "holes": hole_results, "tally": tally})
+
+    except (KeyError, TypeError, ValueError) as e:
+        return jsonify({"error": f"Invalid data: {e}"}), 422
+
+
+@app.route("/calculate_better_ball", methods=["POST"])
+def calculate_better_ball():
+    body = request.get_json(silent=True)
+    if not body:
+        return jsonify({"error": "No data provided."}), 400
+
+    try:
+        holes = [
+            Hole(number=int(h["number"]), par=int(h["par"]),
+                 handicap_rating=int(h["handicap_rating"]))
+            for h in body["holes"]
+        ]
+
+        teams      = []
+        team_names = []
+        for t in body["teams"]:
+            team_names.append(t.get("name", f"Team {len(teams) + 1}"))
+            players = []
+            for p in t["players"]:
+                scores = [int(s) for s in p["scores"]]
+                players.append(Player(name=p["name"], handicap=int(p["handicap"]),
+                                      scores=scores))
+            teams.append(players)
+
+        if len(teams) < 2:
+            return jsonify({"error": "At least 2 teams are required for Better Ball."}), 422
+
+        result = better_ball_scores(teams, holes)
+        return jsonify({"success": True, "team_names": team_names, **result})
 
     except (KeyError, TypeError, ValueError) as e:
         return jsonify({"error": f"Invalid data: {e}"}), 422

@@ -214,6 +214,26 @@
     .player-meta label { font-size: .72rem; color: var(--gray); font-weight: 400; }
 
     .add-player-row td { background: #f8f9fa; }
+    .team-header-row td {
+      background: var(--green-bg);
+      padding: 6px 10px;
+      font-weight: 700;
+      color: var(--green);
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .team-header-row input[type="text"] {
+      font-weight: 700;
+      color: var(--green);
+      border: 1px solid var(--green-lt);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: .82rem;
+      background: #fff;
+      width: 130px;
+      text-align: left;
+    }
 
     /* ── Results step ── */
     .results-table th { font-size: .78rem; }
@@ -339,7 +359,9 @@
 
     <div id="error-2" class="error-msg"></div>
 
-    <button class="btn btn-gold" onclick="calculateSkins()">Calculate Skins</button>
+    <p class="section-label" style="margin-top:16px;">Choose Game</p>
+    <button class="btn btn-gold" onclick="calculateSkins()">Skins</button>
+    <button class="btn btn-primary mt-10" onclick="calculateBetterBall()">2 Net Better Ball</button>
     <button class="btn btn-secondary mt-10" onclick="goStep(1)">← Back</button>
   </div>
 </div>
@@ -348,31 +370,50 @@
      STEP 3 — Results
 ═══════════════════════════════════════════ -->
 <div id="step-3" class="hidden">
-  <div class="card">
-    <h2>Scorecard</h2>
-    <div class="table-outer">
-      <table id="results-table" class="results-table"></table>
+
+  <!-- Skins results -->
+  <div id="skins-results">
+    <div class="card">
+      <h2>Scorecard</h2>
+      <div class="table-outer">
+        <table id="results-table" class="results-table"></table>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Gross Skins</h2>
+      <div id="error-3" class="error-msg"></div>
+      <ul class="hole-winner-list" id="gross-list"></ul>
+    </div>
+    <div class="card">
+      <h2>Net Skins</h2>
+      <ul class="hole-winner-list" id="net-list"></ul>
+    </div>
+    <div class="card">
+      <h2>Tally</h2>
+      <table class="tally-table" id="tally-table"></table>
     </div>
   </div>
 
-  <div class="card">
-    <h2>Gross Skins</h2>
-    <div id="error-3" class="error-msg"></div>
-    <ul class="hole-winner-list" id="gross-list"></ul>
-  </div>
-
-  <div class="card">
-    <h2>Net Skins</h2>
-    <ul class="hole-winner-list" id="net-list"></ul>
-  </div>
-
-  <div class="card">
-    <h2>Tally</h2>
-    <table class="tally-table" id="tally-table"></table>
+  <!-- Better Ball results -->
+  <div id="bb-results" class="hidden">
+    <div class="card">
+      <h2>Winner</h2>
+      <div id="bb-winner"></div>
+    </div>
+    <div class="card">
+      <h2>2 Net Better Ball — Team Scores</h2>
+      <p style="font-size:.8rem;color:var(--gray);margin-bottom:10px;">
+        Score shown is the sum of each team's 2 best net scores per hole. Net scores of the 2 contributing players shown below.
+      </p>
+      <div class="table-outer">
+        <table id="bb-table" class="results-table"></table>
+      </div>
+    </div>
   </div>
 
   <div style="padding: 0 16px 24px;">
-    <button class="btn btn-secondary" onclick="startOver()">Start New Round</button>
+    <button class="btn btn-secondary" onclick="goStep(2)">← Back</button>
+    <button class="btn btn-secondary mt-10" onclick="startOver()">Start New Round</button>
   </div>
 </div>
 
@@ -382,9 +423,11 @@
 <script>
   /* ── State ── */
   let state = {
-    imageFile:     null,
-    extractedData: null,   // { holes, players }
-    numHoles:      18,
+    imageFile:      null,
+    extractedData:  null,
+    numHoles:       18,
+    nextPlayerIdx:  0,   // ever-incrementing, never reused
+    nextTeamIdx:    0,   // one per scorecard uploaded
   };
 
   /* ── Navigation ── */
@@ -476,11 +519,23 @@
   }
 
   /* ── Step 2: render editable review table ── */
+  function teamHeaderHtml(ti, teamName) {
+    const n = state.numHoles;
+    return `<tr id='team-header-${ti}' class='team-header-row' data-team='${ti}'>
+      <td class='label-cell' colspan='${n + 1}'>
+        Team: <input type='text' id='team-name-${ti}' value='${escHtml(teamName)}' placeholder='Team name' />
+      </td>
+    </tr>`;
+  }
+
   function renderReviewTable(data) {
     const table = document.getElementById("review-table");
     const n     = data.holes.length;
+    state.numHoles      = n;
+    state.nextPlayerIdx = 0;
+    state.nextTeamIdx   = 0;
 
-    /* Build header row */
+    /* Header row */
     let html = "<thead><tr><th>Field</th>";
     for (let i = 0; i < n; i++) html += `<th>${data.holes[i].number}</th>`;
     html += "</tr></thead><tbody>";
@@ -501,17 +556,20 @@
     }
     html += "</tr>";
 
-    /* Player rows */
-    data.players.forEach((p, pi) => {
-      html += playerRowHtml(pi, p.name, p.handicap ?? "", p.scores, n);
+    /* Team 1 header + players from first scorecard */
+    html += teamHeaderHtml(0, "Team 1");
+    state.nextTeamIdx = 1;
+    data.players.forEach(p => {
+      const pi = state.nextPlayerIdx++;
+      html += playerRowHtml(pi, p.name, p.handicap ?? "", p.scores, n, 0);
     });
 
     html += "</tbody>";
     table.innerHTML = html;
   }
 
-  function playerRowHtml(pi, name, hcpVal, scores, n) {
-    let html = `<tr id='player-row-${pi}'>`;
+  function playerRowHtml(pi, name, hcpVal, scores, n, ti) {
+    let html = `<tr id='player-row-${pi}' data-team='${ti ?? 0}'>`;
     html += `<td class='label-cell'>
       <div class='player-meta'>
         <input type='text' id='pname-${pi}' value='${escHtml(name)}' placeholder='Name' />
@@ -528,22 +586,11 @@
     return html;
   }
 
-  let nextPlayerIdx = 0;  // tracks highest player index used
-
   function addPlayerRow() {
-    /* Find highest existing index to avoid collisions */
-    const tbody = document.querySelector("#review-table tbody");
-    const rows  = tbody.querySelectorAll("tr[id^='player-row-']");
-    let   maxIdx = rows.length > 0
-      ? Math.max(...[...rows].map(r => parseInt(r.id.split("-")[2])))
-      : -1;
-    const pi = maxIdx + 1;
-    const n  = state.numHoles;
-
-    const tr = document.createElement("tr");
-    tr.id = `player-row-${pi}`;
-    tr.innerHTML = playerRowHtml(pi, "", "", [], n).replace(/^<tr[^>]*>/, "").replace(/<\/tr>$/, "");
-    tbody.appendChild(tr);
+    const tbody  = document.querySelector("#review-table tbody");
+    const lastTi = Math.max(0, state.nextTeamIdx - 1);
+    const pi     = state.nextPlayerIdx++;
+    tbody.insertAdjacentHTML("beforeend", playerRowHtml(pi, "", "", [], state.numHoles, lastTi));
   }
 
   function removePlayerRow(pi) {
@@ -572,20 +619,13 @@
       const body = await res.json();
       if (!res.ok || !body.success) throw new Error(body.error || "Unknown error from server.");
 
-      /* Append only the players — holes are assumed identical (same course) */
-      const tbody  = document.querySelector("#review-table tbody");
-      const rows   = tbody.querySelectorAll("tr[id^='player-row-']");
-      let   maxIdx = rows.length > 0
-        ? Math.max(...[...rows].map(r => parseInt(r.id.split("-")[2])))
-        : -1;
-
-      body.data.players.forEach((p, offset) => {
-        const pi = maxIdx + 1 + offset;
-        const tr = document.createElement("tr");
-        tr.id = `player-row-${pi}`;
-        tr.innerHTML = playerRowHtml(pi, p.name, p.handicap ?? "", p.scores, state.numHoles)
-          .replace(/^<tr[^>]*>/, "").replace(/<\/tr>$/, "");
-        tbody.appendChild(tr);
+      /* Add a new team header, then append the players from this scorecard */
+      const tbody = document.querySelector("#review-table tbody");
+      const ti    = state.nextTeamIdx++;
+      tbody.insertAdjacentHTML("beforeend", teamHeaderHtml(ti, `Team ${ti + 1}`));
+      body.data.players.forEach(p => {
+        const pi = state.nextPlayerIdx++;
+        tbody.insertAdjacentHTML("beforeend", playerRowHtml(pi, p.name, p.handicap ?? "", p.scores, state.numHoles, ti));
       });
 
     } catch (err) {
@@ -658,6 +698,8 @@
 
       if (!res.ok || !body.success) throw new Error(body.error || "Calculation failed.");
 
+      document.getElementById("bb-results").classList.add("hidden");
+      document.getElementById("skins-results").classList.remove("hidden");
       renderResults(body, players.map(p => p.name));
       goStep(3);
 
@@ -739,13 +781,143 @@
     tt.innerHTML = tHtml;
   }
 
+  /* ── Step 2: collect teams from review table (for Better Ball) ── */
+  function collectTeams() {
+    const n      = state.numHoles;
+    const tbody  = document.querySelector("#review-table tbody");
+    const teamsMap = {};
+
+    /* Seed team name entries */
+    for (let ti = 0; ti < state.nextTeamIdx; ti++) {
+      const nameEl = document.getElementById(`team-name-${ti}`);
+      teamsMap[ti] = { name: nameEl ? nameEl.value.trim() || `Team ${ti + 1}` : `Team ${ti + 1}`, players: [] };
+    }
+
+    const rows = tbody.querySelectorAll("tr[id^='player-row-']");
+    for (const row of rows) {
+      const pi  = row.id.split("-")[2];
+      const ti  = parseInt(row.getAttribute("data-team") ?? 0);
+      const name     = document.getElementById(`pname-${pi}`)?.value.trim();
+      const handicap = parseInt(document.getElementById(`phcp-${pi}`)?.value);
+
+      if (!name) continue;
+      if (isNaN(handicap) || handicap < 0) return { error: `Please enter a valid handicap for ${name}.` };
+
+      const scores = [];
+      for (let i = 0; i < n; i++) {
+        const s = parseInt(document.getElementById(`score-${pi}-${i}`)?.value);
+        if (isNaN(s) || s < 1) return { error: `Missing score for ${name} on hole ${i + 1}.` };
+        scores.push(s);
+      }
+      if (!teamsMap[ti]) teamsMap[ti] = { name: `Team ${ti + 1}`, players: [] };
+      teamsMap[ti].players.push({ name, handicap, scores });
+    }
+
+    const teams = Object.values(teamsMap).filter(t => t.players.length > 0);
+    return { teams };
+  }
+
+  /* ── Step 2 → Better Ball calculate ── */
+  async function calculateBetterBall() {
+    clearError("error-2");
+    const n = state.numHoles;
+
+    /* Collect holes */
+    const holes = [];
+    for (let i = 0; i < n; i++) {
+      const par = parseInt(document.getElementById(`par-${i}`)?.value);
+      const hcp = parseInt(document.getElementById(`hcp-${i}`)?.value);
+      if (isNaN(par) || isNaN(hcp)) {
+        showError("error-2", `Hole ${i + 1}: par and HCP rating are required.`);
+        return;
+      }
+      holes.push({ number: i + 1, par, handicap_rating: hcp });
+    }
+
+    const { teams, error } = collectTeams();
+    if (error) { showError("error-2", error); return; }
+    if (teams.length < 2) {
+      showError("error-2", "At least 2 teams (scorecards) are required for Better Ball. Use '+ Add Another Scorecard' to add a second group.");
+      return;
+    }
+
+    showLoading("Calculating Better Ball…");
+
+    try {
+      const res  = await fetch("/calculate_better_ball", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ holes, teams }),
+      });
+      const body = await res.json();
+      if (!res.ok || !body.success) throw new Error(body.error || "Calculation failed.");
+
+      document.getElementById("skins-results").classList.add("hidden");
+      document.getElementById("bb-results").classList.remove("hidden");
+      renderBetterBallResults(body);
+      goStep(3);
+
+    } catch (err) {
+      showError("error-2", err.message);
+    } finally {
+      hideLoading();
+    }
+  }
+
+  /* ── Step 3: render Better Ball results ── */
+  function renderBetterBallResults(data) {
+    const teamNames = data.team_names;
+
+    /* Winner banner */
+    const minTotal  = data.min_total;
+    const winners   = teamNames.filter((_, i) => data.team_totals[i] === minTotal);
+    const winnerEl  = document.getElementById("bb-winner");
+    if (winners.length === 1) {
+      winnerEl.innerHTML = `<p style='font-size:1.1rem;font-weight:700;color:var(--green);'>${escHtml(winners[0])}</p>
+        <p style='color:var(--gray);font-size:.9rem;'>Total: ${minTotal}</p>`;
+    } else {
+      winnerEl.innerHTML = `<p style='font-size:1rem;font-weight:700;'>Tie — ${winners.map(escHtml).join(" &amp; ")}</p>
+        <p style='color:var(--gray);font-size:.9rem;'>Total: ${minTotal}</p>`;
+    }
+
+    /* Team scores table */
+    const bt = document.getElementById("bb-table");
+    let html = "<thead><tr><th>Hole</th><th>Par</th>";
+    teamNames.forEach(n => html += `<th>${escHtml(n)}</th>`);
+    html += "</tr></thead><tbody>";
+
+    data.holes.forEach(hole => {
+      html += `<tr><td>${hole.number}</td><td>${hole.par}</td>`;
+      hole.teams.forEach(t => {
+        const cls          = t.winner ? "gross-win" : "";
+        const contributors = t.contributors.map(c => `${escHtml(c.name)} (${c.net})`).join(", ");
+        html += `<td class='${cls}'>`;
+        html += `<div class='score-gross'>${t.team_score ?? "—"}</div>`;
+        html += `<div class='score-net'>${contributors}</div>`;
+        html += `</td>`;
+      });
+      html += "</tr>";
+    });
+
+    /* Totals row */
+    html += "<tr style='font-weight:700;background:#f8f9fa;'><td colspan='2'>Total</td>";
+    data.team_totals.forEach((total, i) => {
+      const cls = total === minTotal ? "gross-win" : "";
+      html += `<td class='${cls}'>${total}</td>`;
+    });
+    html += "</tr></tbody>";
+    bt.innerHTML = html;
+  }
+
   /* ── Reset ── */
   function startOver() {
-    state = { imageFile: null, extractedData: null, numHoles: 18 };
-    fileInput.value   = "";
+    state = { imageFile: null, extractedData: null, numHoles: 18, nextPlayerIdx: 0, nextTeamIdx: 0 };
+    fileInput.value = "";
     previewWrap.style.display = "none";
-    previewImg.src    = "";
+    previewImg.src  = "";
     analyzeBtn.disabled = true;
+    document.getElementById("skins-results").classList.remove("hidden");
+    document.getElementById("bb-results").classList.add("hidden");
     ["error-1","error-2","error-3"].forEach(clearError);
     goStep(1);
   }
