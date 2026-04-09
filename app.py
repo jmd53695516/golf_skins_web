@@ -70,6 +70,75 @@ def find_skins(
     return results
 
 
+def vegas_scores(
+    team1: list[Player],
+    team2: list[Player],
+    holes: list[Hole],
+) -> dict:
+    t1_total = 0
+    t2_total = 0
+    hole_results = []
+
+    for hole in holes:
+        cap = hole.par + 2
+
+        def player_detail(p: Player):
+            gross   = p.scores[hole.number - 1]
+            strokes = strokes_received(p.handicap, hole.handicap_rating)
+            net     = min(gross - strokes, cap)
+            birdie  = gross < hole.par
+            return {"name": p.name, "gross": gross, "net": net, "strokes": strokes, "birdie": birdie}
+
+        t1_details = [player_detail(p) for p in team1]
+        t2_details = [player_detail(p) for p in team2]
+
+        t1_birdied = any(d["birdie"] for d in t1_details)
+        t2_birdied = any(d["birdie"] for d in t2_details)
+
+        def pair_digits(details, flip: bool) -> int:
+            nets = sorted(d["net"] for d in details)
+            if flip:
+                nets = list(reversed(nets))
+            return nets[0] * 10 + nets[1]
+
+        # A team's score gets flipped when the OPPONENT had a birdie
+        t1_number = pair_digits(t1_details, flip=t2_birdied)
+        t2_number = pair_digits(t2_details, flip=t1_birdied)
+
+        if t1_number < t2_number:
+            t1_pts, t2_pts = t2_number - t1_number, 0
+        elif t2_number < t1_number:
+            t1_pts, t2_pts = 0, t1_number - t2_number
+        else:
+            t1_pts, t2_pts = 0, 0
+
+        t1_total += t1_pts
+        t2_total += t2_pts
+
+        hole_results.append({
+            "number":     hole.number,
+            "par":        hole.par,
+            "t1_details": t1_details,
+            "t2_details": t2_details,
+            "t1_number":  t1_number,
+            "t2_number":  t2_number,
+            "t1_birdied": t1_birdied,
+            "t2_birdied": t2_birdied,
+            "t1_pts":     t1_pts,
+            "t2_pts":     t2_pts,
+            "t1_running": t1_total,
+            "t2_running": t2_total,
+        })
+
+    return {
+        "holes":    hole_results,
+        "t1_total": t1_total,
+        "t2_total": t2_total,
+        "differential": abs(t1_total - t2_total),
+        "winner": 1 if t1_total > t2_total else (2 if t2_total > t1_total else 0),
+    }
+
+
 def better_ball_scores(
     teams: list[list[Player]],
     holes: list[Hole],
@@ -264,6 +333,35 @@ def calculate():
                 tally[nw]["net"] += 1
 
         return jsonify({"success": True, "holes": hole_results, "tally": tally})
+
+    except (KeyError, TypeError, ValueError) as e:
+        return jsonify({"error": f"Invalid data: {e}"}), 422
+
+
+@app.route("/calculate_vegas", methods=["POST"])
+def calculate_vegas():
+    body = request.get_json(silent=True)
+    if not body:
+        return jsonify({"error": "No data provided."}), 400
+
+    try:
+        holes = [
+            Hole(number=int(h["number"]), par=int(h["par"]),
+                 handicap_rating=int(h["handicap_rating"]))
+            for h in body["holes"]
+        ]
+
+        players = []
+        for p in body["players"]:
+            scores = [int(s) for s in p["scores"]]
+            players.append(Player(name=p["name"], handicap=int(p["handicap"]),
+                                  scores=scores))
+
+        if len(players) != 4:
+            return jsonify({"error": "Vegas requires exactly 4 players."}), 422
+
+        result = vegas_scores(players[:2], players[2:], holes)
+        return jsonify({"success": True, **result})
 
     except (KeyError, TypeError, ValueError) as e:
         return jsonify({"error": f"Invalid data: {e}"}), 422
