@@ -384,6 +384,7 @@
     <button class="btn btn-gold" onclick="calculateSkins()">Skins</button>
     <button class="btn btn-primary mt-10" onclick="calculateBetterBall()">2 Net Better Ball</button>
     <button class="btn btn-primary mt-10" onclick="calculateVegas()">Vegas</button>
+    <button class="btn btn-primary mt-10" onclick="calculateQuota()">Quota</button>
     <button class="btn btn-secondary mt-10" onclick="goStep(1)">← Back</button>
   </div>
 </div>
@@ -413,6 +414,23 @@
     <div class="card">
       <h2>Tally</h2>
       <table class="tally-table" id="tally-table"></table>
+    </div>
+  </div>
+
+  <!-- Quota results -->
+  <div id="quota-results" class="hidden">
+    <div class="card">
+      <h2>Quota — Final Standings</h2>
+      <p style="font-size:.8rem;color:var(--gray);margin-bottom:10px;">
+        Quota = 36 − handicap. Eagle=6pts, Birdie=4pts, Par=2pts, Bogey=1pt, Double+=0pts.
+      </p>
+      <table class="tally-table" id="quota-standings"></table>
+    </div>
+    <div class="card">
+      <h2>Hole by Hole</h2>
+      <div class="table-outer">
+        <table id="quota-table" class="results-table"></table>
+      </div>
     </div>
   </div>
 
@@ -639,6 +657,128 @@
 
   function escHtml(str) {
     return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  /* ── Step 2 → Quota calculate ── */
+  async function calculateQuota() {
+    clearError("error-2");
+    const n = state.numHoles;
+
+    const holes = [];
+    for (let i = 0; i < n; i++) {
+      const par = parseInt(document.getElementById(`par-${i}`)?.value);
+      const hcp = parseInt(document.getElementById(`hcp-${i}`)?.value);
+      if (isNaN(par) || isNaN(hcp)) {
+        showError("error-2", `Hole ${i + 1}: par and HCP rating are required.`);
+        return;
+      }
+      holes.push({ number: i + 1, par, handicap_rating: hcp });
+    }
+
+    const players = [];
+    const tbody   = document.querySelector("#review-table tbody");
+    const rows    = tbody.querySelectorAll("tr[id^='player-row-']");
+    for (const row of rows) {
+      const pi       = row.id.split("-")[2];
+      const name     = document.getElementById(`pname-${pi}`)?.value.trim();
+      const handicap = parseInt(document.getElementById(`phcp-${pi}`)?.value);
+      if (!name) continue;
+      if (isNaN(handicap) || handicap < 0) {
+        showError("error-2", `Please enter a valid handicap for ${name}.`);
+        return;
+      }
+      const scores = [];
+      for (let i = 0; i < n; i++) {
+        const s = parseInt(document.getElementById(`score-${pi}-${i}`)?.value);
+        if (isNaN(s) || s < 1) {
+          showError("error-2", `Missing score for ${name} on hole ${i + 1}.`);
+          return;
+        }
+        scores.push(s);
+      }
+      players.push({ name, handicap, scores });
+    }
+
+    if (players.length < 2) {
+      showError("error-2", "At least 2 players are required.");
+      return;
+    }
+
+    showLoading("Calculating Quota…");
+
+    try {
+      const res  = await fetch("/calculate_quota", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ holes, players }),
+      });
+      const body = await res.json();
+      if (!res.ok || !body.success) throw new Error(body.error || "Calculation failed.");
+
+      document.getElementById("skins-results").classList.add("hidden");
+      document.getElementById("bb-results").classList.add("hidden");
+      document.getElementById("vegas-results").classList.add("hidden");
+      document.getElementById("quota-results").classList.remove("hidden");
+      renderQuotaResults(body);
+      goStep(3);
+
+    } catch (err) {
+      showError("error-2", err.message);
+    } finally {
+      hideLoading();
+    }
+  }
+
+  /* ── Step 3: render Quota results ── */
+  function renderQuotaResults(data) {
+    const pointLabel = { "-2": "Eagle", "-1": "Birdie", "0": "Par", "1": "Bogey" };
+
+    /* Standings table */
+    const st = document.getElementById("quota-standings");
+    let sHtml = `<thead><tr>
+      <th>Player</th><th>Quota</th><th>Earned</th><th>vs Quota</th>
+    </tr></thead><tbody>`;
+    data.results.forEach((r, i) => {
+      const vsQ    = r.vs_quota >= 0 ? `+${r.vs_quota}` : `${r.vs_quota}`;
+      const winner = i === 0 ? "gross-win" : "";
+      sHtml += `<tr>
+        <td style='text-align:left;${i===0?"font-weight:700;":""}'>${escHtml(r.name)}${i===0 ? " 🏆" : ""}</td>
+        <td>${r.quota}</td>
+        <td>${r.earned}</td>
+        <td class='${winner}'>${vsQ}</td>
+      </tr>`;
+    });
+    sHtml += "</tbody>";
+    st.innerHTML = sHtml;
+
+    /* Hole by hole table */
+    const qt      = document.getElementById("quota-table");
+    const players = data.results.map(r => r.name);
+    let html = `<thead><tr><th>Hole</th><th>Par</th>`;
+    players.forEach(name => html += `<th>${escHtml(name)}</th>`);
+    html += `</tr></thead><tbody>`;
+
+    data.holes.forEach(hole => {
+      html += `<tr><td>${hole.number}</td><td>${hole.par}</td>`;
+      hole.players.forEach(p => {
+        const diffStr = p.diff === 0 ? "E" : p.diff > 0 ? `+${p.diff}` : `${p.diff}`;
+        const label   = pointLabel[String(p.diff)] ?? "Double+";
+        const cls     = p.diff <= -1 ? "net-win" : p.diff >= 2 ? "" : "";
+        html += `<td class='${cls}'>
+          <div class='score-gross'>${p.gross} <span style='font-size:.75rem;font-weight:400;'>(${diffStr})</span></div>
+          <div class='score-net'>${p.points}pt — ${label}</div>
+        </td>`;
+      });
+      html += `</tr>`;
+    });
+
+    /* Totals row */
+    html += `<tr style='font-weight:700;background:#f8f9fa;'><td colspan='2'>Total</td>`;
+    data.results.forEach(r => {
+      html += `<td>${r.earned} / ${r.quota} (${r.vs_quota >= 0 ? "+" : ""}${r.vs_quota})</td>`;
+    });
+    html += `</tr></tbody>`;
+    qt.innerHTML = html;
   }
 
   /* ── Step 2 → Vegas calculate ── */
@@ -1108,6 +1248,7 @@
     document.getElementById("skins-results").classList.remove("hidden");
     document.getElementById("bb-results").classList.add("hidden");
     document.getElementById("vegas-results").classList.add("hidden");
+    document.getElementById("quota-results").classList.add("hidden");
     ["error-1","error-2","error-3"].forEach(clearError);
     goStep(1);
   }

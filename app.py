@@ -139,6 +139,48 @@ def vegas_scores(
     }
 
 
+QUOTA_POINTS = {-2: 6, -1: 4, 0: 2, 1: 1}  # score vs par → points; 2+ over = 0
+
+
+def quota_scores(
+    players: list[Player],
+    holes: list[Hole],
+) -> dict:
+    quotas    = {p.name: 36 - p.handicap for p in players}
+    earned    = {p.name: 0 for p in players}
+    hole_results = []
+
+    for hole in holes:
+        hole_players = []
+        for p in players:
+            gross    = p.scores[hole.number - 1]
+            diff     = gross - hole.par
+            pts      = QUOTA_POINTS.get(diff, 0)
+            earned[p.name] += pts
+            hole_players.append({
+                "name": p.name, "gross": gross,
+                "diff": diff, "points": pts,
+                "running": earned[p.name],
+            })
+        hole_results.append({
+            "number": hole.number, "par": hole.par,
+            "players": hole_players,
+        })
+
+    results = [
+        {
+            "name":       name,
+            "quota":      quotas[name],
+            "earned":     earned[name],
+            "vs_quota":   earned[name] - quotas[name],
+        }
+        for name in [p.name for p in players]
+    ]
+    results.sort(key=lambda r: r["vs_quota"], reverse=True)
+
+    return {"holes": hole_results, "results": results}
+
+
 def better_ball_scores(
     teams: list[list[Player]],
     holes: list[Hole],
@@ -333,6 +375,34 @@ def calculate():
                 tally[nw]["net"] += 1
 
         return jsonify({"success": True, "holes": hole_results, "tally": tally})
+
+    except (KeyError, TypeError, ValueError) as e:
+        return jsonify({"error": f"Invalid data: {e}"}), 422
+
+
+@app.route("/calculate_quota", methods=["POST"])
+def calculate_quota():
+    body = request.get_json(silent=True)
+    if not body:
+        return jsonify({"error": "No data provided."}), 400
+
+    try:
+        holes = [
+            Hole(number=int(h["number"]), par=int(h["par"]),
+                 handicap_rating=int(h["handicap_rating"]))
+            for h in body["holes"]
+        ]
+        players = []
+        for p in body["players"]:
+            scores = [int(s) for s in p["scores"]]
+            players.append(Player(name=p["name"], handicap=int(p["handicap"]),
+                                  scores=scores))
+
+        if len(players) < 2:
+            return jsonify({"error": "At least 2 players are required."}), 422
+
+        result = quota_scores(players, holes)
+        return jsonify({"success": True, **result})
 
     except (KeyError, TypeError, ValueError) as e:
         return jsonify({"error": f"Invalid data: {e}"}), 422
