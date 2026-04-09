@@ -868,31 +868,39 @@
   function renderBetterBallResults(data) {
     const teamNames = data.team_names;
 
+    /* Course par doubled (2 scores per hole) */
+    const coursePar    = data.holes.reduce((sum, h) => sum + h.par, 0);
+    const bbPar        = coursePar * 2;
+    const fmtVsPar     = v => v === 0 ? "E" : (v > 0 ? `+${v}` : `${v}`);
+
     /* Winner banner */
-    const minTotal  = data.min_total;
-    const winners   = teamNames.filter((_, i) => data.team_totals[i] === minTotal);
-    const winnerEl  = document.getElementById("bb-winner");
+    const minTotal = data.min_total;
+    const winners  = teamNames.filter((_, i) => data.team_totals[i] === minTotal);
+    const winnerEl = document.getElementById("bb-winner");
+    const winVsPar = fmtVsPar(minTotal - bbPar);
     if (winners.length === 1) {
       winnerEl.innerHTML = `<p style='font-size:1.1rem;font-weight:700;color:var(--green);'>${escHtml(winners[0])}</p>
-        <p style='color:var(--gray);font-size:.9rem;'>Total: ${minTotal}</p>`;
+        <p style='color:var(--gray);font-size:.9rem;'>Total: ${minTotal} (${winVsPar} vs par ${bbPar})</p>`;
     } else {
       winnerEl.innerHTML = `<p style='font-size:1rem;font-weight:700;'>Tie — ${winners.map(escHtml).join(" &amp; ")}</p>
-        <p style='color:var(--gray);font-size:.9rem;'>Total: ${minTotal}</p>`;
+        <p style='color:var(--gray);font-size:.9rem;'>Total: ${minTotal} (${winVsPar} vs par ${bbPar})</p>`;
     }
 
     /* Team scores table */
     const bt = document.getElementById("bb-table");
-    let html = "<thead><tr><th>Hole</th><th>Par</th>";
+    let html = "<thead><tr><th>Hole</th><th>Par ×2</th>";
     teamNames.forEach(n => html += `<th>${escHtml(n)}</th>`);
     html += "</tr></thead><tbody>";
 
     data.holes.forEach(hole => {
-      html += `<tr><td>${hole.number}</td><td>${hole.par}</td>`;
+      const holeBbPar = hole.par * 2;
+      html += `<tr><td>${hole.number}</td><td>${holeBbPar}</td>`;
       hole.teams.forEach(t => {
         const cls          = t.winner ? "gross-win" : "";
         const contributors = t.contributors.map(c => `${escHtml(c.name)} (${c.net})`).join(", ");
+        const vsPar        = t.team_score != null ? fmtVsPar(t.team_score - holeBbPar) : "—";
         html += `<td class='${cls}'>`;
-        html += `<div class='score-gross'>${t.team_score ?? "—"}</div>`;
+        html += `<div class='score-gross'>${t.team_score ?? "—"} <span style='font-weight:400;font-size:.8rem;color:inherit;'>(${vsPar})</span></div>`;
         html += `<div class='score-net'>${contributors}</div>`;
         html += `</td>`;
       });
@@ -900,10 +908,11 @@
     });
 
     /* Totals row */
-    html += "<tr style='font-weight:700;background:#f8f9fa;'><td colspan='2'>Total</td>";
+    html += `<tr style='font-weight:700;background:#f8f9fa;'><td>Total</td><td>${bbPar}</td>`;
     data.team_totals.forEach((total, i) => {
-      const cls = total === minTotal ? "gross-win" : "";
-      html += `<td class='${cls}'>${total}</td>`;
+      const cls    = total === minTotal ? "gross-win" : "";
+      const vsPar  = fmtVsPar(total - bbPar);
+      html += `<td class='${cls}'>${total} (${vsPar})</td>`;
     });
     html += "</tr></tbody>";
     bt.innerHTML = html;
