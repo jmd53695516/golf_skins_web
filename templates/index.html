@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Golf Skins</title>
+  <title>Golf Game Scorer</title>
   <style>
     :root {
       --green:      #2d6a4f;
@@ -306,6 +306,28 @@
     .hole-winner-list li:last-child { border-bottom: none; }
     .hole-num { color: var(--gray); font-size: .8rem; }
 
+    /* ── Game picker ── */
+    .game-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      padding: 18px 20px;
+      background: #fff;
+      border: 2px solid #dee2e6;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color .2s, background .2s, transform .1s;
+      text-align: left;
+      margin-bottom: 12px;
+    }
+    .game-btn:active { transform: scale(.98); }
+    .game-btn:hover  { border-color: var(--green-lt); background: var(--green-bg); }
+    .game-btn .game-icon { font-size: 1.8rem; flex-shrink: 0; }
+    .game-btn .game-info { display: flex; flex-direction: column; gap: 2px; }
+    .game-btn .game-name { font-size: 1rem; font-weight: 700; color: var(--green); }
+    .game-btn .game-desc { font-size: .8rem; color: var(--gray); }
+
     /* ── Utility ── */
     .hidden { display: none !important; }
     .mt-10  { margin-top: 10px; }
@@ -318,10 +340,10 @@
 
 <header>
   <span>⛳</span>
-  <h1>Golf Skins Calculator</h1>
+  <h1>Golf Game Scorer</h1>
 </header>
 
-<div class="steps">
+<div class="steps" id="step-dots">
   <div class="step-dot active" id="dot-1"></div>
   <div class="step-dot" id="dot-2"></div>
   <div class="step-dot" id="dot-3"></div>
@@ -333,9 +355,53 @@
 </div>
 
 <!-- ═══════════════════════════════════════════
+     STEP 0 — Game Picker
+═══════════════════════════════════════════ -->
+<div id="step-0">
+  <div class="card">
+    <h2>Select a Game</h2>
+    <p style="font-size:.85rem;color:var(--gray);margin-bottom:16px;">
+      Choose the game you'd like to score. You can upload one or more scorecards on the next screen.
+    </p>
+
+    <button class="game-btn" onclick="selectGame('skins')">
+      <span class="game-icon">💰</span>
+      <div class="game-info">
+        <span class="game-name">Skins</span>
+        <span class="game-desc">Gross &amp; net — lowest score wins each hole outright</span>
+      </div>
+    </button>
+
+    <button class="game-btn" onclick="selectGame('betterball')">
+      <span class="game-icon">🤝</span>
+      <div class="game-info">
+        <span class="game-name">2 Net Better Ball</span>
+        <span class="game-desc">Each foursome is a team — best 2 net scores per hole</span>
+      </div>
+    </button>
+
+    <button class="game-btn" onclick="selectGame('vegas')">
+      <span class="game-icon">🎰</span>
+      <div class="game-info">
+        <span class="game-name">Vegas</span>
+        <span class="game-desc">Pair net scores into a 2-digit number — low number wins points</span>
+      </div>
+    </button>
+
+    <button class="game-btn" onclick="selectGame('quota')">
+      <span class="game-icon">🎯</span>
+      <div class="game-info">
+        <span class="game-name">Quota</span>
+        <span class="game-desc">Beat your personal quota (36 − handicap) with gross points</span>
+      </div>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
      STEP 1 — Upload
 ═══════════════════════════════════════════ -->
-<div id="step-1">
+<div id="step-1" class="hidden">
   <div class="card">
     <h2>Upload Scorecard</h2>
 
@@ -355,6 +421,7 @@
     <button class="btn btn-primary mt-16" id="analyze-btn" disabled onclick="analyzeScorecard()">
       Analyze Scorecard
     </button>
+    <button class="btn btn-secondary mt-10" onclick="goStep(0)">← Change Game</button>
   </div>
 </div>
 
@@ -483,18 +550,31 @@
     imageFile:      null,
     extractedData:  null,
     numHoles:       18,
-    nextPlayerIdx:  0,   // ever-incrementing, never reused
-    nextTeamIdx:    0,   // one per scorecard uploaded
+    nextPlayerIdx:  0,
+    nextTeamIdx:    0,
+    selectedGame:   null,   // 'skins' | 'betterball' | 'vegas' | 'quota'
   };
 
   /* ── Navigation ── */
   function goStep(n) {
-    [1, 2, 3].forEach(i => {
+    [0, 1, 2, 3].forEach(i => {
       document.getElementById(`step-${i}`).classList.toggle("hidden", i !== n);
-      const dot = document.getElementById(`dot-${i}`);
-      dot.classList.toggle("active", i === n);
-      dot.classList.toggle("done",   i < n);
     });
+    // Hide step dots on game picker, show otherwise
+    document.getElementById("step-dots").classList.toggle("hidden", n === 0);
+    if (n > 0) {
+      [1, 2, 3].forEach(i => {
+        const dot = document.getElementById(`dot-${i}`);
+        dot.classList.toggle("active", i === n);
+        dot.classList.toggle("done",   i < n);
+      });
+    }
+  }
+
+  /* ── Game selection ── */
+  function selectGame(game) {
+    state.selectedGame = game;
+    goStep(1);
   }
 
   /* ── Step 1: file selection ── */
@@ -1240,7 +1320,7 @@
 
   /* ── Reset ── */
   function startOver() {
-    state = { imageFile: null, extractedData: null, numHoles: 18, nextPlayerIdx: 0, nextTeamIdx: 0 };
+    state = { imageFile: null, extractedData: null, numHoles: 18, nextPlayerIdx: 0, nextTeamIdx: 0, selectedGame: null };
     fileInput.value = "";
     previewWrap.style.display = "none";
     previewImg.src  = "";
@@ -1250,8 +1330,11 @@
     document.getElementById("vegas-results").classList.add("hidden");
     document.getElementById("quota-results").classList.add("hidden");
     ["error-1","error-2","error-3"].forEach(clearError);
-    goStep(1);
+    goStep(0);
   }
+
+  /* ── Init: start on game picker ── */
+  goStep(0);
 </script>
 </body>
 </html>
