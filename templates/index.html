@@ -1456,11 +1456,10 @@
         const border = m.is_auto ? "border-left:3px solid var(--gold-dk);" : "";
 
         betsHtml += `<div style="border:1.5px solid #dee2e6;border-radius:8px;padding:10px 14px;margin-bottom:8px;${border}">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
             <span style="font-size:.8rem;font-weight:600;">${matchLabel}</span>
             ${winHtml}
           </div>
-          <div style="font-size:.78rem;color:var(--gray);">${t1Name}: ${m.t1_wins}W &nbsp;|&nbsp; ${t2Name}: ${m.t2_wins}W &nbsp;|&nbsp; Halved: ${ties}</div>
         </div>`;
       });
 
