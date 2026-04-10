@@ -181,6 +181,112 @@ def quota_scores(
     return {"holes": hole_results, "results": results}
 
 
+def nassau_scores(
+    team1: list[Player],
+    team2: list[Player],
+    holes: list[Hole],
+) -> dict:
+    """
+    2v2 best-ball match play Nassau with autos (presses).
+    Autos: when a team goes exactly 2 down in any active match within a 9-hole
+    segment, a new independent match opens on the next hole. Autos can stack.
+    3 segments: front 9 (with autos), back 9 (with autos), total 18 (no autos).
+    """
+    hole_results = []
+
+    for hole in holes:
+        def player_detail(p: Player):
+            gross   = p.scores[hole.number - 1]
+            strokes = strokes_received(p.handicap, hole.handicap_rating)
+            return {"name": p.name, "gross": gross, "net": gross - strokes, "strokes": strokes}
+
+        t1_details = [player_detail(p) for p in team1]
+        t2_details = [player_detail(p) for p in team2]
+        t1_best = min(d["net"] for d in t1_details)
+        t2_best = min(d["net"] for d in t2_details)
+        result  = 1 if t1_best < t2_best else (2 if t2_best < t1_best else 0)
+
+        hole_results.append({
+            "number":     hole.number,
+            "par":        hole.par,
+            "t1_details": t1_details,
+            "t2_details": t2_details,
+            "t1_best":    t1_best,
+            "t2_best":    t2_best,
+            "result":     result,
+        })
+
+    def process_segment(hrs: list[dict], with_autos: bool = True) -> Optional[dict]:
+        if not hrs:
+            return None
+
+        # Each match: start_idx (into hrs), running wins, prev_diff for auto detection
+        matches: list[dict] = [
+            {"start_idx": 0, "t1w": 0, "t2w": 0, "prev_diff": 0, "is_auto": False}
+        ]
+        hole_statuses: list[dict] = []
+
+        for idx, hole in enumerate(hrs):
+            new_presses: list[dict] = []
+            for match in matches:
+                if match["start_idx"] > idx:
+                    continue
+                if hole["result"] == 1:
+                    match["t1w"] += 1
+                elif hole["result"] == 2:
+                    match["t2w"] += 1
+                diff = match["t1w"] - match["t2w"]
+                # Trigger auto when diff just reaches ±2 (was ±1) and holes remain
+                if (with_autos
+                        and abs(diff) == 2
+                        and abs(match["prev_diff"]) == 1
+                        and idx + 1 < len(hrs)):
+                    new_presses.append({
+                        "start_idx": idx + 1,
+                        "t1w": 0, "t2w": 0, "prev_diff": 0, "is_auto": True,
+                    })
+                match["prev_diff"] = diff
+
+            auto_opens = len(new_presses) > 0
+            matches.extend(new_presses)
+
+            statuses = [
+                {
+                    "match_num": mi,
+                    "is_auto":   m["is_auto"],
+                    "t1w": m["t1w"], "t2w": m["t2w"],
+                    "diff": m["t1w"] - m["t2w"],
+                }
+                for mi, m in enumerate(matches) if m["start_idx"] <= idx
+            ]
+            hole_statuses.append({"statuses": statuses, "auto_opens": auto_opens})
+
+        match_results = [
+            {
+                "match_num":  mi,
+                "is_auto":    m["is_auto"],
+                "start_hole": hrs[m["start_idx"]]["number"],
+                "end_hole":   hrs[-1]["number"],
+                "t1_wins":    m["t1w"],
+                "t2_wins":    m["t2w"],
+                "winner":     1 if m["t1w"] > m["t2w"] else (2 if m["t2w"] > m["t1w"] else 0),
+            }
+            for mi, m in enumerate(matches)
+        ]
+
+        return {"matches": match_results, "hole_statuses": hole_statuses}
+
+    front = [h for h in hole_results if h["number"] <= 9]
+    back  = [h for h in hole_results if h["number"] > 9]
+
+    return {
+        "holes": hole_results,
+        "front": process_segment(front, with_autos=True),
+        "back":  process_segment(back,  with_autos=True),
+        "total": process_segment(hole_results, with_autos=False),
+    }
+
+
 def better_ball_scores(
     teams: list[list[Player]],
     holes: list[Hole],
@@ -431,6 +537,34 @@ def calculate_vegas():
             return jsonify({"error": "Vegas requires exactly 4 players."}), 422
 
         result = vegas_scores(players[:2], players[2:], holes)
+        return jsonify({"success": True, **result})
+
+    except (KeyError, TypeError, ValueError) as e:
+        return jsonify({"error": f"Invalid data: {e}"}), 422
+
+
+@app.route("/calculate_nassau", methods=["POST"])
+def calculate_nassau():
+    body = request.get_json(silent=True)
+    if not body:
+        return jsonify({"error": "No data provided."}), 400
+
+    try:
+        holes = [
+            Hole(number=int(h["number"]), par=int(h["par"]),
+                 handicap_rating=int(h["handicap_rating"]))
+            for h in body["holes"]
+        ]
+        players = []
+        for p in body["players"]:
+            scores = [int(s) for s in p["scores"]]
+            players.append(Player(name=p["name"], handicap=int(p["handicap"]),
+                                  scores=scores))
+
+        if len(players) != 4:
+            return jsonify({"error": "Nassau requires exactly 4 players."}), 422
+
+        result = nassau_scores(players[:2], players[2:], holes)
         return jsonify({"success": True, **result})
 
     except (KeyError, TypeError, ValueError) as e:

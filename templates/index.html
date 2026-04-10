@@ -395,6 +395,14 @@
         <span class="game-desc">Beat your personal quota (36 − handicap) with gross points</span>
       </div>
     </button>
+
+    <button class="game-btn" onclick="selectGame('nassau')">
+      <span class="game-icon">🏌️</span>
+      <div class="game-info">
+        <span class="game-name">Nassau</span>
+        <span class="game-desc">3 bets: front 9, back 9 &amp; total — 2v2 best-ball match play</span>
+      </div>
+    </button>
   </div>
 </div>
 
@@ -452,6 +460,7 @@
     <button class="btn btn-primary mt-10" onclick="calculateBetterBall()">2 Net Better Ball</button>
     <button class="btn btn-primary mt-10" onclick="calculateVegas()">Vegas</button>
     <button class="btn btn-primary mt-10" onclick="calculateQuota()">Quota</button>
+    <button class="btn btn-primary mt-10" onclick="calculateNassau()">Nassau</button>
     <button class="btn btn-secondary mt-10" onclick="goStep(1)">← Back</button>
   </div>
 </div>
@@ -535,6 +544,26 @@
     </div>
   </div>
 
+  <!-- Nassau results -->
+  <div id="nassau-results" class="hidden">
+    <div class="card">
+      <h2>Nassau — Bets</h2>
+      <p style="font-size:.8rem;color:var(--gray);margin-bottom:10px;">
+        3 separate bets: front 9, back 9, and total 18. Each hole won by the team with the lower best net score.
+      </p>
+      <div id="nassau-bets"></div>
+    </div>
+    <div class="card">
+      <h2>Nassau — Hole by Hole</h2>
+      <p style="font-size:.8rem;color:var(--gray);margin-bottom:10px;">
+        Best net score from each team per hole. Lower best net wins the hole.
+      </p>
+      <div class="table-outer">
+        <table id="nassau-table" class="results-table"></table>
+      </div>
+    </div>
+  </div>
+
   <div style="padding: 0 16px 24px;">
     <button class="btn btn-secondary" onclick="goStep(2)">← Back</button>
     <button class="btn btn-secondary mt-10" onclick="startOver()">Start New Round</button>
@@ -552,7 +581,7 @@
     numHoles:       18,
     nextPlayerIdx:  0,
     nextTeamIdx:    0,
-    selectedGame:   null,   // 'skins' | 'betterball' | 'vegas' | 'quota'
+    selectedGame:   null,   // 'skins' | 'betterball' | 'vegas' | 'quota' | 'nassau'
   };
 
   /* ── Navigation ── */
@@ -1318,6 +1347,181 @@
     bt.innerHTML = html;
   }
 
+  /* ── Step 2 → Nassau calculate ── */
+  async function calculateNassau() {
+    clearError("error-2");
+    const n = state.numHoles;
+
+    const holes = [];
+    for (let i = 0; i < n; i++) {
+      const par = parseInt(document.getElementById(`par-${i}`)?.value);
+      const hcp = parseInt(document.getElementById(`hcp-${i}`)?.value);
+      if (isNaN(par) || isNaN(hcp)) {
+        showError("error-2", `Hole ${i + 1}: par and HCP rating are required.`);
+        return;
+      }
+      holes.push({ number: i + 1, par, handicap_rating: hcp });
+    }
+
+    const players = [];
+    const tbody   = document.querySelector("#review-table tbody");
+    const rows    = tbody.querySelectorAll("tr[id^='player-row-']");
+    for (const row of rows) {
+      const pi       = row.id.split("-")[2];
+      const name     = document.getElementById(`pname-${pi}`)?.value.trim();
+      const handicap = parseInt(document.getElementById(`phcp-${pi}`)?.value);
+      if (!name) continue;
+      if (isNaN(handicap) || handicap < 0) {
+        showError("error-2", `Please enter a valid handicap for ${name}.`);
+        return;
+      }
+      const scores = [];
+      for (let i = 0; i < n; i++) {
+        const s = parseInt(document.getElementById(`score-${pi}-${i}`)?.value);
+        if (isNaN(s) || s < 1) {
+          showError("error-2", `Missing score for ${name} on hole ${i + 1}.`);
+          return;
+        }
+        scores.push(s);
+      }
+      players.push({ name, handicap, scores });
+    }
+
+    if (players.length !== 4) {
+      showError("error-2", `Nassau requires exactly 4 players — ${players.length} found.`);
+      return;
+    }
+
+    showLoading("Calculating Nassau…");
+
+    try {
+      const res  = await fetch("/calculate_nassau", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ holes, players }),
+      });
+      const body = await res.json();
+      if (!res.ok || !body.success) throw new Error(body.error || "Calculation failed.");
+
+      ["skins-results","bb-results","vegas-results","quota-results"].forEach(id =>
+        document.getElementById(id).classList.add("hidden")
+      );
+      document.getElementById("nassau-results").classList.remove("hidden");
+      renderNassauResults(body, players);
+      goStep(3);
+
+    } catch (err) {
+      showError("error-2", err.message);
+    } finally {
+      hideLoading();
+    }
+  }
+
+  /* ── Step 3: render Nassau results ── */
+  function renderNassauResults(data, players) {
+    const t1Name = `${escHtml(players[0].name)} &amp; ${escHtml(players[1].name)}`;
+    const t2Name = `${escHtml(players[2].name)} &amp; ${escHtml(players[3].name)}`;
+
+    /* Build hole → segment status lookup */
+    const frontHoles = data.holes.filter(h => h.number <= 9);
+    const backHoles  = data.holes.filter(h => h.number > 9);
+    const holeStatusMap = {};
+    if (data.front) data.front.hole_statuses.forEach((s, i) => { holeStatusMap[frontHoles[i].number] = s; });
+    if (data.back)  data.back.hole_statuses.forEach((s, i)  => { holeStatusMap[backHoles[i].number]  = s; });
+
+    /* Bets section — one block per segment, each match listed */
+    const segDefs = [
+      { key: "front", label: "Front 9"  },
+      { key: "back",  label: "Back 9"   },
+      { key: "total", label: "Total 18" },
+    ];
+
+    let betsHtml = "";
+    segDefs.forEach(({ key, label }) => {
+      const seg = data[key];
+      if (!seg) return;
+      betsHtml += `<div style="margin-bottom:18px;">
+        <div style="font-size:.75rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">${label}</div>`;
+
+      seg.matches.forEach(m => {
+        const winnerName = m.winner === 1 ? t1Name : m.winner === 2 ? t2Name : null;
+        const winHtml    = winnerName
+          ? `<span style="font-weight:700;color:var(--green);">${winnerName}</span>`
+          : `<span style="color:var(--gray);">All Square</span>`;
+        const matchLabel = m.is_auto
+          ? `Press ${m.match_num} (holes ${m.start_hole}–${m.end_hole})`
+          : `Original (holes ${m.start_hole}–${m.end_hole})`;
+        const totalHoles = m.end_hole - m.start_hole + 1;
+        const ties = totalHoles - m.t1_wins - m.t2_wins;
+        const border = m.is_auto ? "border-left:3px solid var(--gold-dk);" : "";
+
+        betsHtml += `<div style="border:1.5px solid #dee2e6;border-radius:8px;padding:10px 14px;margin-bottom:8px;${border}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:.8rem;font-weight:600;">${matchLabel}</span>
+            ${winHtml}
+          </div>
+          <div style="font-size:.78rem;color:var(--gray);">${t1Name}: ${m.t1_wins}W &nbsp;|&nbsp; ${t2Name}: ${m.t2_wins}W &nbsp;|&nbsp; Halved: ${ties}</div>
+        </div>`;
+      });
+
+      betsHtml += `</div>`;
+    });
+    document.getElementById("nassau-bets").innerHTML = betsHtml;
+
+    /* Hole-by-hole table */
+    const nt = document.getElementById("nassau-table");
+    let html = `<thead><tr>
+      <th>Hole</th><th>Par</th>
+      <th>${t1Name}</th><th>Best</th>
+      <th>${t2Name}</th><th>Best</th>
+      <th>Result</th><th>Status</th>
+    </tr></thead><tbody>`;
+
+    data.holes.forEach(hole => {
+      const resultLabel = hole.result === 1
+        ? `<span style="color:var(--green);font-weight:700;">T1 ✓</span>`
+        : hole.result === 2
+          ? `<span style="color:var(--red);font-weight:700;">T2 ✓</span>`
+          : `<span style="color:var(--gray);">Halved</span>`;
+
+      /* Build match status cell from segment annotation */
+      const ann = holeStatusMap[hole.number];
+      let statusHtml = "";
+      if (ann) {
+        statusHtml = ann.statuses.map(s => {
+          const lbl  = s.is_auto ? `Press ${s.match_num}` : "Orig";
+          const stat = s.diff === 0 ? "A/S" : s.diff > 0 ? `T1 ${s.diff}UP` : `T2 ${Math.abs(s.diff)}UP`;
+          return `<span style="font-size:.72rem;white-space:nowrap;">${lbl}: <strong>${stat}</strong></span>`;
+        }).join("<br>");
+        if (ann.auto_opens) {
+          statusHtml += `<br><span style="font-size:.7rem;color:var(--gold-dk);font-weight:700;">⚡ Press</span>`;
+        }
+      }
+
+      const playerCell = (details, bestNet) =>
+        details.map(d => {
+          const s = d.net === bestNet ? "font-weight:700;" : "color:var(--gray);";
+          return `<span style="${s}">${escHtml(d.name)}: ${d.gross}→${d.net}</span>`;
+        }).join("<br>");
+
+      const t1cls = hole.result === 1 ? "gross-win" : "";
+      const t2cls = hole.result === 2 ? "gross-win" : "";
+
+      html += `<tr>
+        <td>${hole.number}</td><td>${hole.par}</td>
+        <td style="text-align:left;font-size:.78rem;">${playerCell(hole.t1_details, hole.t1_best)}</td>
+        <td class="${t1cls}" style="font-weight:700;">${hole.t1_best}</td>
+        <td style="text-align:left;font-size:.78rem;">${playerCell(hole.t2_details, hole.t2_best)}</td>
+        <td class="${t2cls}" style="font-weight:700;">${hole.t2_best}</td>
+        <td>${resultLabel}</td>
+        <td style="text-align:left;">${statusHtml}</td>
+      </tr>`;
+    });
+
+    html += "</tbody>";
+    nt.innerHTML = html;
+  }
+
   /* ── Reset ── */
   function startOver() {
     state = { imageFile: null, extractedData: null, numHoles: 18, nextPlayerIdx: 0, nextTeamIdx: 0, selectedGame: null };
@@ -1329,6 +1533,7 @@
     document.getElementById("bb-results").classList.add("hidden");
     document.getElementById("vegas-results").classList.add("hidden");
     document.getElementById("quota-results").classList.add("hidden");
+    document.getElementById("nassau-results").classList.add("hidden");
     ["error-1","error-2","error-3"].forEach(clearError);
     goStep(0);
   }
