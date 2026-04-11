@@ -192,12 +192,14 @@ def nassau_scores(
     segment, a new independent match opens on the next hole. Autos can stack.
     3 segments: front 9 (with autos), back 9 (with autos), total 18 (no autos).
     """
+    all_players = team1 + team2
+    min_hcp     = min(p.handicap for p in all_players)
     hole_results = []
 
     for hole in holes:
-        def player_detail(p: Player):
+        def player_detail(p: Player, _min=min_hcp):
             gross   = p.scores[hole.number - 1]
-            strokes = strokes_received(p.handicap, hole.handicap_rating)
+            strokes = strokes_received(p.handicap - _min, hole.handicap_rating)
             return {"name": p.name, "gross": gross, "net": gross - strokes, "strokes": strokes}
 
         t1_details = [player_detail(p) for p in team1]
