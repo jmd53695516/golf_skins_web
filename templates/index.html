@@ -1191,7 +1191,7 @@
     st.innerHTML = sHtml;
 
     const qt      = document.getElementById("quota-table");
-    const players = data.results.map(r => r.name);
+    const players = data.holes[0].players.map(p => p.name);
     let html = `<thead><tr><th>Hole</th><th>Par</th>`;
     players.forEach(name => html += `<th>${escHtml(name)}</th>`);
     html += `</tr></thead><tbody>`;
