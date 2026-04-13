@@ -6,85 +6,109 @@
   <title>Golf Game Scorer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Libre+Franklin:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --ink:       #1c2a1e;
-      --green:     #1d4d35;
-      --green-lt:  #2d6a4f;
-      --green-bg:  #e3ede6;
-      --gold:      #b8912a;
-      --gold-lt:   #d4aa4c;
-      --gold-dk:   #96741e;
-      --gold-bg:   #faf3e0;
-      --cream:     #f4efe4;
-      --cream-dk:  #e8e0cc;
-      --red:       #b83228;
-      --gray:      #7a8a7d;
-      --muted:     #7a8a7d;
-      --border:    #cfc5b0;
-      --radius:    10px;
-      --shadow:    0 2px 14px rgba(28,42,30,.08);
-      --shadow-md: 0 4px 24px rgba(28,42,30,.13);
+      /* Augusta palette */
+      --augusta:     #006747;
+      --augusta-dk:  #004d35;
+      --augusta-lt:  #1a7a5a;
+      --augusta-bg:  #e8f2ec;
+      --gold:        #c8a951;
+      --gold-dk:     #a68a3a;
+      --gold-lt:     #dfc474;
+      --gold-bg:     rgba(200,169,81,.08);
+      --azalea:      #d4577a;
+      --azalea-lt:   #e07a97;
+      --azalea-bg:   rgba(212,87,122,.06);
+      --leather:     #8b6f47;
+      --leather-lt:  #a68a5b;
+      --magnolia:    #fdf8f0;
+      --linen:       #f7f1e6;
+      --parchment:   #eee5d3;
+      --ink:         #2c2416;
+      --ink-mid:     #5c4f3a;
+      --ink-dim:     #8a7d6b;
+      --border:      #d6c9a8;
+      --border-lt:   #e5dbc5;
+      --radius:      8px;
+      --radius-lg:   14px;
+      --shadow:      0 1px 8px rgba(44,36,22,.06), 0 4px 16px rgba(44,36,22,.04);
+      --shadow-md:   0 2px 12px rgba(44,36,22,.08), 0 8px 32px rgba(44,36,22,.06);
+      --shadow-gold: 0 2px 16px rgba(200,169,81,.15);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #f0ebe0;
-      background-image:
-        repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(200,191,168,.1) 39px, rgba(200,191,168,.1) 40px),
-        repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(200,191,168,.06) 39px, rgba(200,191,168,.06) 40px);
+      font-family: 'Libre Franklin', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--linen);
       color: var(--ink);
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    /* ── Header ── */
+    /* leather grain texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      opacity: .018;
+      pointer-events: none;
+      z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 256px 256px;
+    }
+
+    /* ---- Header ---- */
     header {
-      background: var(--green);
+      background: var(--augusta);
       color: #fff;
-      padding: 15px 20px;
+      padding: 18px 22px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       position: relative;
+      box-shadow: 0 2px 12px rgba(0,103,71,.25);
     }
     header::after {
       content: '';
       position: absolute;
       bottom: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--gold) 0%, rgba(184,145,42,0) 100%);
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold) 0%, var(--gold-lt) 40%, var(--azalea-lt) 80%, transparent 100%);
     }
     .header-emblem {
-      width: 38px; height: 38px;
+      width: 42px; height: 42px;
       background: rgba(255,255,255,.1);
-      border: 1px solid rgba(255,255,255,.18);
+      border: 1.5px solid var(--gold);
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       flex-shrink: 0;
+      box-shadow: 0 0 12px rgba(200,169,81,.2);
     }
     .header-text h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.15rem;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.25rem;
       font-weight: 700;
       line-height: 1.2;
+      letter-spacing: .02em;
     }
     .header-text p {
-      font-size: .62rem;
-      font-weight: 400;
-      letter-spacing: .14em;
+      font-size: .58rem;
+      font-weight: 500;
+      letter-spacing: .2em;
       text-transform: uppercase;
-      color: rgba(255,255,255,.5);
+      color: var(--gold-lt);
       margin-top: 2px;
     }
 
-    /* ── Step indicator ── */
+    /* ---- Step indicator ---- */
     .steps {
-      background: var(--green);
-      padding: 10px 28px 16px;
+      background: var(--augusta);
+      padding: 8px 28px 18px;
       display: flex;
       align-items: center;
     }
@@ -96,81 +120,101 @@
       flex: 0 0 auto;
     }
     .step-num {
-      width: 26px; height: 26px;
+      width: 28px; height: 28px;
       border-radius: 50%;
-      background: rgba(255,255,255,.15);
-      color: rgba(255,255,255,.4);
+      background: rgba(255,255,255,.12);
+      color: rgba(255,255,255,.35);
       display: flex; align-items: center; justify-content: center;
-      font-size: .76rem;
-      font-weight: 600;
-      transition: background .3s, color .3s, box-shadow .3s;
+      font-size: .72rem;
+      font-weight: 700;
+      transition: all .35s ease;
+      font-family: 'Cormorant Garamond', serif;
+      border: 1px solid rgba(255,255,255,.08);
     }
     .step-lbl {
-      font-size: .6rem;
-      color: rgba(255,255,255,.38);
-      letter-spacing: .08em;
+      font-size: .58rem;
+      color: rgba(255,255,255,.3);
+      letter-spacing: .12em;
       text-transform: uppercase;
+      font-weight: 500;
       transition: color .3s;
       white-space: nowrap;
     }
     .step-dot.active .step-num {
-      background: #fff;
-      color: var(--green);
-      box-shadow: 0 0 0 3px rgba(255,255,255,.2);
+      background: var(--gold);
+      color: var(--augusta-dk);
+      border-color: var(--gold-lt);
+      box-shadow: 0 0 14px rgba(200,169,81,.4);
     }
-    .step-dot.active .step-lbl { color: rgba(255,255,255,.9); }
-    .step-dot.done .step-num   { background: var(--gold); color: #fff; }
-    .step-dot.done .step-lbl   { color: rgba(255,255,255,.7); }
+    .step-dot.active .step-lbl { color: var(--gold-lt); }
+    .step-dot.done .step-num {
+      background: rgba(255,255,255,.2);
+      color: #fff;
+      border-color: rgba(255,255,255,.25);
+    }
+    .step-dot.done .step-lbl { color: rgba(255,255,255,.55); }
     .step-conn {
       flex: 1;
       height: 1px;
-      background: rgba(255,255,255,.18);
-      margin: 0 8px 18px;
+      background: rgba(255,255,255,.15);
+      margin: 0 10px 18px;
     }
 
-    /* ── Cards ── */
+    /* ---- Cards ---- */
     .card {
-      background: #fff;
-      border-radius: var(--radius);
+      background: var(--magnolia);
+      border-radius: var(--radius-lg);
       box-shadow: var(--shadow);
-      padding: 20px;
-      margin: 14px;
-      border: 1px solid rgba(207,197,176,.25);
+      padding: 24px;
+      margin: 16px;
+      border: 1px solid var(--border-lt);
+      position: relative;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 20px; right: 20px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: .35;
     }
     .card h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.05rem;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.2rem;
       font-weight: 700;
-      color: var(--green);
-      margin-bottom: 14px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--cream-dk);
-      letter-spacing: .01em;
+      color: var(--augusta);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-lt);
+      letter-spacing: .02em;
     }
 
-    /* ── Game picker ── */
+    /* ---- Game picker ---- */
     .picker-head {
-      padding: 28px 20px 8px;
+      padding: 40px 24px 10px;
       text-align: center;
     }
     .picker-head h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.65rem;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 2rem;
       font-weight: 700;
-      color: var(--green);
-      line-height: 1.2;
+      color: var(--augusta);
+      line-height: 1.15;
+      letter-spacing: .01em;
     }
     .picker-head p {
-      font-size: .82rem;
-      color: var(--muted);
-      margin-top: 5px;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1rem;
+      font-style: italic;
+      color: var(--ink-dim);
+      margin-top: 6px;
       letter-spacing: .02em;
     }
     .picker-divider {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin: 16px 20px 10px;
+      gap: 16px;
+      margin: 22px 22px 16px;
     }
     .picker-divider::before,
     .picker-divider::after {
@@ -180,165 +224,193 @@
       background: var(--border);
     }
     .picker-divider span {
-      font-size: .62rem;
-      color: var(--muted);
-      letter-spacing: .1em;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: .7rem;
+      color: var(--gold-dk);
+      letter-spacing: .2em;
       text-transform: uppercase;
+      font-weight: 600;
     }
-    .game-grid { padding: 0 14px 28px; }
+    .game-grid { padding: 0 16px 36px; }
 
     .game-btn {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
       width: 100%;
-      padding: 15px 16px;
-      background: #fff;
+      padding: 18px 20px;
+      background: var(--magnolia);
       border: 1px solid var(--border);
-      border-left: 3px solid var(--green);
+      border-left: 4px solid var(--augusta);
       border-radius: var(--radius);
       cursor: pointer;
-      transition: border-left-color .2s, background .2s, box-shadow .2s, transform .12s;
+      transition: all .3s ease;
       text-align: left;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       box-shadow: var(--shadow);
       opacity: 0;
-      animation: fadeUp .5s ease forwards;
+      animation: fadeUp .55s ease forwards;
+      color: var(--ink);
     }
-    .game-btn:nth-child(1) { animation-delay: .05s; }
-    .game-btn:nth-child(2) { animation-delay: .12s; }
-    .game-btn:nth-child(3) { animation-delay: .19s; }
-    .game-btn:nth-child(4) { animation-delay: .26s; }
-    .game-btn:nth-child(5) { animation-delay: .33s; }
+    .game-btn:nth-child(1) { animation-delay: .08s; }
+    .game-btn:nth-child(2) { animation-delay: .16s; }
+    .game-btn:nth-child(3) { animation-delay: .24s; }
+    .game-btn:nth-child(4) { animation-delay: .32s; }
+    .game-btn:nth-child(5) { animation-delay: .40s; }
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(12px); }
       to   { opacity: 1; transform: translateY(0); }
     }
     .game-btn:active { transform: scale(.99); }
-    .game-btn:hover  {
+    .game-btn:hover {
       border-left-color: var(--gold);
-      background: var(--gold-bg);
-      box-shadow: var(--shadow-md);
+      background: #fff;
+      box-shadow: var(--shadow-md), var(--shadow-gold);
+      transform: translateY(-1px);
     }
     .game-icon-wrap {
-      width: 40px; height: 40px;
+      width: 46px; height: 46px;
       border-radius: 50%;
-      background: var(--green-bg);
+      background: var(--augusta-bg);
+      border: 1px solid rgba(0,103,71,.1);
       display: flex; align-items: center; justify-content: center;
       font-size: 1.3rem;
       flex-shrink: 0;
-      transition: background .2s;
+      transition: all .3s;
     }
-    .game-btn:hover .game-icon-wrap { background: #f0e6c8; }
-    .game-info { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+    .game-btn:hover .game-icon-wrap {
+      background: var(--gold-bg);
+      border-color: var(--gold);
+      box-shadow: var(--shadow-gold);
+    }
+    .game-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
     .game-name {
-      font-family: 'Playfair Display', serif;
-      font-size: .92rem;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.05rem;
       font-weight: 700;
-      color: var(--green);
+      color: var(--augusta);
     }
-    .game-desc { font-size: .76rem; color: var(--muted); line-height: 1.4; }
+    .game-desc { font-size: .76rem; color: var(--ink-dim); line-height: 1.5; }
     .game-chevron {
-      color: var(--muted);
-      font-size: 1rem;
+      color: var(--border);
+      font-size: 1.2rem;
       flex-shrink: 0;
-      transition: color .2s, transform .2s;
+      transition: all .3s;
+      font-weight: 300;
     }
-    .game-btn:hover .game-chevron { color: var(--gold); transform: translateX(2px); }
+    .game-btn:hover .game-chevron { color: var(--gold); transform: translateX(3px); }
 
-    /* ── Buttons ── */
+    /* ---- Buttons ---- */
     .btn {
       display: block;
       width: 100%;
-      padding: 14px;
+      padding: 15px;
       border: none;
       border-radius: var(--radius);
-      font-family: 'Jost', sans-serif;
-      font-size: .95rem;
+      font-family: 'Libre Franklin', sans-serif;
+      font-size: .9rem;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity .15s, transform .1s, box-shadow .15s;
+      transition: all .25s ease;
       text-align: center;
-      letter-spacing: .03em;
+      letter-spacing: .04em;
     }
     .btn:active { transform: scale(.98); }
     .btn:disabled { opacity: .35; cursor: not-allowed; }
     .btn-primary {
-      background: var(--green);
+      background: var(--augusta);
       color: #fff;
-      box-shadow: 0 2px 8px rgba(29,77,53,.2);
+      box-shadow: 0 2px 10px rgba(0,103,71,.2);
     }
-    .btn-primary:hover:not(:disabled) { box-shadow: 0 4px 16px rgba(29,77,53,.3); }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--augusta-lt);
+      box-shadow: 0 4px 20px rgba(0,103,71,.3);
+    }
     .btn-secondary {
       background: transparent;
-      color: var(--green);
-      border: 1.5px solid var(--green);
+      color: var(--augusta);
+      border: 1.5px solid var(--augusta);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--augusta-bg);
     }
     .btn-gold {
-      background: var(--gold);
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%);
       color: #fff;
-      box-shadow: 0 2px 8px rgba(184,145,42,.25);
+      box-shadow: 0 2px 12px rgba(200,169,81,.3);
+      text-shadow: 0 1px 2px rgba(0,0,0,.15);
     }
-    .btn-gold:hover:not(:disabled) { box-shadow: 0 4px 16px rgba(184,145,42,.38); }
+    .btn-gold:hover:not(:disabled) {
+      box-shadow: 0 4px 24px rgba(200,169,81,.45);
+      transform: translateY(-1px);
+    }
     .btn-sm {
       display: inline-block;
       width: auto;
-      padding: 7px 14px;
-      font-size: .82rem;
+      padding: 7px 16px;
+      font-size: .8rem;
     }
     .btn-danger {
       background: transparent;
-      color: var(--red);
-      border: 1.5px solid var(--red);
+      color: var(--azalea);
+      border: 1.5px solid rgba(212,87,122,.3);
+    }
+    .btn-danger:hover:not(:disabled) {
+      border-color: var(--azalea);
+      background: var(--azalea-bg);
     }
 
-    /* ── Upload zone ── */
+    /* ---- Upload zone ---- */
     #upload-zone {
       border: 2px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 36px 20px;
+      border-radius: var(--radius-lg);
+      padding: 42px 22px;
       text-align: center;
       cursor: pointer;
-      transition: border-color .2s, background .2s;
-      background: var(--cream);
+      transition: all .3s ease;
+      background: var(--linen);
     }
     #upload-zone:hover, #upload-zone.dragover {
-      border-color: var(--green-lt);
-      background: var(--green-bg);
+      border-color: var(--augusta-lt);
+      background: var(--augusta-bg);
+      box-shadow: inset 0 0 30px rgba(0,103,71,.03);
     }
     .upload-circle {
-      width: 60px; height: 60px;
-      background: var(--green-bg);
+      width: 66px; height: 66px;
+      background: var(--augusta-bg);
+      border: 1.5px solid rgba(0,103,71,.12);
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       font-size: 1.6rem;
-      margin: 0 auto 12px;
-      transition: background .2s, transform .2s;
+      margin: 0 auto 14px;
+      transition: all .3s;
     }
     #upload-zone:hover .upload-circle,
     #upload-zone.dragover .upload-circle {
-      background: var(--green);
+      background: var(--augusta);
+      border-color: var(--augusta);
       transform: scale(1.06);
+      box-shadow: 0 4px 20px rgba(0,103,71,.25);
     }
-    #upload-zone p { color: var(--muted); font-size: .87rem; line-height: 1.5; }
+    #upload-zone p { color: var(--ink-dim); font-size: .87rem; line-height: 1.55; }
     #upload-zone input { display: none; }
-    .upload-sub { font-size: .74rem !important; margin-top: 5px; opacity: .7; }
+    .upload-sub { font-size: .74rem !important; margin-top: 6px; opacity: .6; }
 
-    #preview-wrap { margin-top: 16px; display: none; }
+    #preview-wrap { margin-top: 18px; display: none; }
     #preview-img {
       width: 100%;
       max-height: 260px;
       object-fit: contain;
-      border-radius: 8px;
+      border-radius: var(--radius);
       border: 1px solid var(--border);
     }
 
-    /* ── Loading overlay ── */
+    /* ---- Loading overlay ---- */
     #loading {
       display: none;
       position: fixed; inset: 0;
-      background: rgba(10,24,14,.72);
-      backdrop-filter: blur(6px);
+      background: rgba(44,36,22,.7);
+      backdrop-filter: blur(8px);
       z-index: 99;
       flex-direction: column;
       align-items: center;
@@ -346,39 +418,41 @@
     }
     #loading.show { display: flex; }
     .loading-card {
-      background: var(--green);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 16px;
-      padding: 30px 40px;
+      background: var(--magnolia);
+      border: 1.5px solid var(--gold);
+      border-radius: var(--radius-lg);
+      padding: 36px 48px;
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 14px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+      gap: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3), var(--shadow-gold);
     }
     .spinner {
-      width: 42px; height: 42px;
-      border: 3px solid rgba(255,255,255,.18);
-      border-top-color: var(--gold-lt);
+      width: 44px; height: 44px;
+      border: 3px solid var(--border-lt);
+      border-top-color: var(--gold);
       border-radius: 50%;
-      animation: spin 1s linear infinite;
+      animation: spin .9s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     #loading p {
-      font-size: .88rem;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1rem;
       font-weight: 500;
-      color: rgba(255,255,255,.78);
+      font-style: italic;
+      color: var(--ink-mid);
     }
 
-    /* ── Error banner ── */
+    /* ---- Error banner ---- */
     .error-msg {
-      background: #fdf0ef;
-      border: 1px solid #e8c0bc;
-      border-left: 3px solid var(--red);
-      border-radius: 8px;
-      padding: 12px 14px;
-      color: #8b2219;
+      background: var(--azalea-bg);
+      border: 1px solid rgba(212,87,122,.15);
+      border-left: 4px solid var(--azalea);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      color: #983352;
       font-size: .87rem;
       margin-bottom: 14px;
       display: none;
@@ -386,11 +460,11 @@
     }
     .error-msg.show { display: block; }
 
-    /* ── Review table ── */
+    /* ---- Review table ---- */
     .table-outer {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
-      border-radius: 8px;
+      border-radius: var(--radius);
       border: 1px solid var(--border);
       margin-bottom: 16px;
     }
@@ -400,39 +474,47 @@
       font-size: .82rem;
     }
     th, td {
-      padding: 7px 8px;
-      border: 1px solid #ddd8cc;
+      padding: 8px 9px;
+      border: 1px solid var(--border-lt);
       white-space: nowrap;
     }
     th {
-      background: var(--green);
+      background: var(--augusta);
       color: #fff;
       font-weight: 600;
       text-align: center;
-      font-size: .72rem;
-      letter-spacing: .05em;
+      font-size: .68rem;
+      letter-spacing: .08em;
       text-transform: uppercase;
     }
-    td { text-align: center; background: #fdfbf7; }
+    td { text-align: center; background: var(--magnolia); }
     td.label-cell {
       text-align: left;
-      background: var(--cream);
+      background: var(--linen);
       font-weight: 600;
       min-width: 90px;
       position: sticky;
       left: 0;
       z-index: 1;
       border-right: 2px solid var(--border);
+      color: var(--ink-mid);
     }
     td input[type="number"], td input[type="text"] {
-      width: 42px;
-      padding: 4px;
+      width: 44px;
+      padding: 5px;
       border: 1px solid var(--border);
-      border-radius: 4px;
+      border-radius: 5px;
       text-align: center;
       font-size: .82rem;
-      font-family: 'Jost', sans-serif;
+      font-family: 'Libre Franklin', sans-serif;
       background: #fff;
+      color: var(--ink);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    td input:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 6px rgba(200,169,81,.2);
     }
     td input[type="text"] { width: 90px; text-align: left; }
     .player-meta {
@@ -443,74 +525,80 @@
     }
     .player-meta input[type="text"]   { width: 100%; }
     .player-meta input[type="number"] { width: 60px; }
-    .player-meta label { font-size: .72rem; color: var(--muted); font-weight: 400; }
+    .player-meta label { font-size: .72rem; color: var(--ink-dim); font-weight: 400; }
 
-    .add-player-row td { background: var(--cream); }
-    .birdie-flag { font-size: .7rem; color: var(--red); font-weight: 700; margin-left: 3px; }
-    .vegas-number { font-size: 1.1rem; font-weight: 700; }
-    .vegas-pts { font-size: .75rem; color: var(--muted); }
-    .vegas-pts.earned { color: var(--green); font-weight: 700; }
-    .flipped-label { font-size: .68rem; color: var(--red); font-weight: 600; }
+    .add-player-row td { background: var(--linen); }
+    .birdie-flag { font-size: .7rem; color: var(--azalea); font-weight: 700; margin-left: 3px; }
+    .vegas-number { font-size: 1.1rem; font-weight: 700; color: var(--augusta-dk); }
+    .vegas-pts { font-size: .75rem; color: var(--ink-dim); }
+    .vegas-pts.earned { color: var(--augusta); font-weight: 700; }
+    .flipped-label { font-size: .68rem; color: var(--azalea); font-weight: 600; }
 
     .team-header-row td {
-      background: var(--green-bg);
-      padding: 7px 10px;
+      background: var(--augusta-bg);
+      padding: 8px 12px;
       font-weight: 700;
-      color: var(--green);
-      font-size: .78rem;
+      color: var(--augusta);
+      font-size: .76rem;
       text-transform: uppercase;
-      letter-spacing: .06em;
+      letter-spacing: .08em;
+      font-family: 'Cormorant Garamond', Georgia, serif;
     }
     .team-header-row input[type="text"] {
-      font-family: 'Jost', sans-serif;
+      font-family: 'Libre Franklin', sans-serif;
       font-weight: 600;
-      color: var(--green);
-      border: 1px solid var(--green-lt);
-      border-radius: 4px;
-      padding: 3px 8px;
+      color: var(--augusta);
+      border: 1px solid var(--augusta-lt);
+      border-radius: 5px;
+      padding: 4px 10px;
       font-size: .82rem;
       background: #fff;
       width: 130px;
       text-align: left;
     }
 
-    /* ── Results ── */
-    .results-table th { font-size: .72rem; }
+    /* ---- Results ---- */
+    .results-table th { font-size: .68rem; }
     .results-table td { font-size: .8rem; }
     .score-cell { position: relative; }
-    .score-gross { font-weight: 600; }
-    .score-net   { font-size: .72rem; color: var(--muted); }
-    td.gross-win { background: #ddeede; font-weight: 700; }
+    .score-gross { font-weight: 700; color: var(--ink); }
+    .score-net   { font-size: .72rem; color: var(--ink-dim); }
+    td.gross-win { background: rgba(0,103,71,.08); font-weight: 700; }
     td.net-win   { background: var(--gold-bg); font-weight: 700; }
-    td.both-win  { background: linear-gradient(135deg, #ddeede 50%, var(--gold-bg) 50%); font-weight: 700; }
+    td.both-win  { background: linear-gradient(135deg, rgba(0,103,71,.08) 50%, rgba(200,169,81,.08) 50%); font-weight: 700; }
 
     .winner-badge {
       display: inline-block;
-      padding: 2px 9px;
+      padding: 2px 10px;
       border-radius: 20px;
-      font-size: .7rem;
+      font-size: .68rem;
       font-weight: 700;
+      letter-spacing: .02em;
     }
-    .badge-gross { background: var(--green-bg); color: var(--green); }
-    .badge-net   { background: var(--gold-bg); color: var(--gold-dk); }
-    .badge-none  { background: var(--cream-dk); color: var(--muted); }
+    .badge-gross { background: var(--augusta-bg); color: var(--augusta); }
+    .badge-net   { background: var(--gold-bg); color: var(--gold-dk); border: 1px solid rgba(200,169,81,.15); }
+    .badge-none  { background: var(--parchment); color: var(--ink-dim); }
 
     .tally-table { width: 100%; border-collapse: collapse; }
     .tally-table th, .tally-table td {
-      padding: 9px 12px;
-      border: 1px solid #ddd8cc;
+      padding: 10px 14px;
+      border: 1px solid var(--border-lt);
       text-align: center;
     }
-    .tally-table th { background: var(--green); color: #fff; }
-    .tally-table tr:nth-child(even) td { background: #faf7f2; }
+    .tally-table th {
+      background: var(--augusta);
+      color: #fff;
+    }
+    .tally-table tr:nth-child(even) td { background: var(--linen); }
 
     .section-label {
-      font-size: .7rem;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: .75rem;
       font-weight: 600;
-      color: var(--muted);
+      color: var(--gold-dk);
       text-transform: uppercase;
-      letter-spacing: .1em;
-      margin: 16px 0 8px;
+      letter-spacing: .16em;
+      margin: 20px 0 10px;
     }
 
     .hole-winner-list { list-style: none; }
@@ -518,39 +606,43 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--cream-dk);
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-lt);
       font-size: .88rem;
     }
     .hole-winner-list li:last-child { border-bottom: none; }
-    .hole-num { color: var(--muted); font-size: .78rem; }
+    .hole-num { color: var(--ink-dim); font-size: .78rem; }
 
-    /* Winner banner — written by JS render functions */
+    /* Winner banner */
     .win-banner {
-      background: var(--green);
-      color: #fff;
-      border-radius: var(--radius);
-      padding: 20px;
+      background: linear-gradient(135deg, var(--augusta) 0%, var(--augusta-dk) 100%);
+      border: 1.5px solid var(--gold);
+      border-radius: var(--radius-lg);
+      padding: 24px;
       text-align: center;
+      box-shadow: var(--shadow-gold), 0 8px 30px rgba(0,103,71,.2);
+      color: #fff;
     }
     .win-name {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.25rem;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.4rem;
       font-weight: 700;
-      margin-bottom: 5px;
+      margin-bottom: 6px;
+      letter-spacing: .02em;
+      text-shadow: 0 1px 3px rgba(0,0,0,.2);
     }
     .win-detail {
       font-size: .82rem;
-      color: rgba(255,255,255,.62);
+      color: var(--gold-lt);
     }
     .win-tie {
-      font-family: 'Playfair Display', serif;
-      font-size: 1rem;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.1rem;
       font-weight: 700;
       margin-bottom: 5px;
     }
 
-    /* ── Utility ── */
+    /* ---- Utility ---- */
     .hidden { display: none !important; }
     .mt-10  { margin-top: 10px; }
     .mt-16  { margin-top: 16px; }
@@ -561,7 +653,7 @@
 <body>
 
 <header>
-  <div class="header-emblem">⛳</div>
+  <div class="header-emblem">&#9971;</div>
   <div class="header-text">
     <h1>Golf Game Scorer</h1>
     <p>Scorecard Calculator</p>
@@ -588,13 +680,13 @@
 <div id="loading">
   <div class="loading-card">
     <div class="spinner"></div>
-    <p id="loading-msg">Analyzing scorecard…</p>
+    <p id="loading-msg">Analyzing scorecard&hellip;</p>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     STEP 0 — Game Picker
-═══════════════════════════════════════════ -->
+<!-- =============================================
+     STEP 0 - Game Picker
+============================================= -->
 <div id="step-0">
   <div class="picker-head">
     <h2>Choose Your Game</h2>
@@ -603,55 +695,55 @@
   <div class="picker-divider"><span>games</span></div>
   <div class="game-grid">
     <button class="game-btn" onclick="selectGame('skins')">
-      <div class="game-icon-wrap">💰</div>
+      <div class="game-icon-wrap">&#x1F4B0;</div>
       <div class="game-info">
         <span class="game-name">Skins</span>
-        <span class="game-desc">Gross &amp; net — lowest score wins each hole outright</span>
+        <span class="game-desc">Gross &amp; net &mdash; lowest score wins each hole outright</span>
       </div>
-      <span class="game-chevron">›</span>
+      <span class="game-chevron">&#x203A;</span>
     </button>
 
     <button class="game-btn" onclick="selectGame('betterball')">
-      <div class="game-icon-wrap">🤝</div>
+      <div class="game-icon-wrap">&#x1F91D;</div>
       <div class="game-info">
         <span class="game-name">2 Net Better Ball</span>
-        <span class="game-desc">Each foursome is a team — best 2 net scores per hole</span>
+        <span class="game-desc">Each foursome is a team &mdash; best 2 net scores per hole</span>
       </div>
-      <span class="game-chevron">›</span>
+      <span class="game-chevron">&#x203A;</span>
     </button>
 
     <button class="game-btn" onclick="selectGame('vegas')">
-      <div class="game-icon-wrap">🎰</div>
+      <div class="game-icon-wrap">&#x1F3B0;</div>
       <div class="game-info">
         <span class="game-name">Vegas</span>
-        <span class="game-desc">Pair net scores into a 2-digit number — low number wins points</span>
+        <span class="game-desc">Pair net scores into a 2-digit number &mdash; low number wins points</span>
       </div>
-      <span class="game-chevron">›</span>
+      <span class="game-chevron">&#x203A;</span>
     </button>
 
     <button class="game-btn" onclick="selectGame('quota')">
-      <div class="game-icon-wrap">🎯</div>
+      <div class="game-icon-wrap">&#x1F3AF;</div>
       <div class="game-info">
         <span class="game-name">Quota</span>
-        <span class="game-desc">Beat your personal quota (36 − handicap) with gross points</span>
+        <span class="game-desc">Beat your personal quota (36 &minus; handicap) with gross points</span>
       </div>
-      <span class="game-chevron">›</span>
+      <span class="game-chevron">&#x203A;</span>
     </button>
 
     <button class="game-btn" onclick="selectGame('nassau')">
-      <div class="game-icon-wrap">🏌️</div>
+      <div class="game-icon-wrap">&#x1F3CC;&#xFE0F;</div>
       <div class="game-info">
         <span class="game-name">Nassau</span>
-        <span class="game-desc">3 bets: front 9, back 9 &amp; total — 2v2 best-ball match play</span>
+        <span class="game-desc">3 bets: front 9, back 9 &amp; total &mdash; 2v2 best-ball match play</span>
       </div>
-      <span class="game-chevron">›</span>
+      <span class="game-chevron">&#x203A;</span>
     </button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     STEP 1 — Upload
-═══════════════════════════════════════════ -->
+<!-- =============================================
+     STEP 1 - Upload
+============================================= -->
 <div id="step-1" class="hidden">
   <div class="card">
     <h2>Upload Scorecard</h2>
@@ -659,9 +751,9 @@
     <div id="error-1" class="error-msg"></div>
 
     <div id="upload-zone" onclick="document.getElementById('file-input').click()">
-      <div class="upload-circle">📷</div>
+      <div class="upload-circle">&#x1F4F7;</div>
       <p>Tap to take a photo, choose from your gallery, or select a screenshot</p>
-      <p class="upload-sub">JPEG, PNG or HEIC · max 20 MB</p>
+      <p class="upload-sub">JPEG, PNG or HEIC &middot; max 20 MB</p>
       <input type="file" id="file-input" accept="image/*" />
     </div>
 
@@ -672,17 +764,17 @@
     <button class="btn btn-gold mt-16" id="analyze-btn" disabled onclick="analyzeScorecard()">
       Analyze Scorecard
     </button>
-    <button class="btn btn-secondary mt-10" onclick="goStep(0)">← Change Game</button>
+    <button class="btn btn-secondary mt-10" onclick="goStep(0)">&larr; Change Game</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     STEP 2 — Review & Edit
-═══════════════════════════════════════════ -->
+<!-- =============================================
+     STEP 2 - Review & Edit
+============================================= -->
 <div id="step-2" class="hidden">
   <div class="card">
     <h2>Review Extracted Data</h2>
-    <p style="font-size:.85rem;color:var(--muted);margin-bottom:14px;line-height:1.55;">
+    <p style="font-size:.85rem;color:var(--ink-dim);margin-bottom:14px;line-height:1.55;">
       Check that pars, handicap ratings, scores, and handicap indices look correct. Edit any values that weren't read correctly.
     </p>
 
@@ -704,13 +796,13 @@
     <button class="btn btn-primary mt-10" onclick="calculateVegas()">Vegas</button>
     <button class="btn btn-primary mt-10" onclick="calculateQuota()">Quota</button>
     <button class="btn btn-primary mt-10" onclick="calculateNassau()">Nassau</button>
-    <button class="btn btn-secondary mt-10" onclick="goStep(1)">← Back</button>
+    <button class="btn btn-secondary mt-10" onclick="goStep(1)">&larr; Back</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     STEP 3 — Results
-═══════════════════════════════════════════ -->
+<!-- =============================================
+     STEP 3 - Results
+============================================= -->
 <div id="step-3" class="hidden">
 
   <!-- Skins results -->
@@ -739,9 +831,9 @@
   <!-- Quota results -->
   <div id="quota-results" class="hidden">
     <div class="card">
-      <h2>Quota — Final Standings</h2>
-      <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;line-height:1.5;">
-        Quota = 36 − handicap. Eagle=6pts, Birdie=4pts, Par=2pts, Bogey=1pt, Double+=0pts.
+      <h2>Quota &mdash; Final Standings</h2>
+      <p style="font-size:.8rem;color:var(--ink-dim);margin-bottom:10px;line-height:1.5;">
+        Quota = 36 &minus; handicap. Eagle=6pts, Birdie=4pts, Par=2pts, Bogey=1pt, Double+=0pts.
       </p>
       <table class="tally-table" id="quota-standings"></table>
     </div>
@@ -760,8 +852,8 @@
       <div id="vegas-winner"></div>
     </div>
     <div class="card">
-      <h2>Vegas — Hole by Hole</h2>
-      <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;line-height:1.5;">
+      <h2>Vegas &mdash; Hole by Hole</h2>
+      <p style="font-size:.8rem;color:var(--ink-dim);margin-bottom:10px;line-height:1.5;">
         Net scores capped at par+2. Lower net goes first to form the team number. A birdie by either player flips the <em>opponent's</em> number. Points = difference between team numbers each hole.
       </p>
       <div class="table-outer">
@@ -777,8 +869,8 @@
       <div id="bb-winner"></div>
     </div>
     <div class="card">
-      <h2>2 Net Better Ball — Team Scores</h2>
-      <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;line-height:1.5;">
+      <h2>2 Net Better Ball &mdash; Team Scores</h2>
+      <p style="font-size:.8rem;color:var(--ink-dim);margin-bottom:10px;line-height:1.5;">
         Score shown is the sum of each team's 2 best net scores per hole. Net scores of the 2 contributing players shown below.
       </p>
       <div class="table-outer">
@@ -790,15 +882,15 @@
   <!-- Nassau results -->
   <div id="nassau-results" class="hidden">
     <div class="card">
-      <h2>Nassau — Bets</h2>
-      <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;line-height:1.5;">
+      <h2>Nassau &mdash; Bets</h2>
+      <p style="font-size:.8rem;color:var(--ink-dim);margin-bottom:10px;line-height:1.5;">
         3 separate bets: front 9, back 9, and total 18. Each hole won by the team with the lower best net score.
       </p>
       <div id="nassau-bets"></div>
     </div>
     <div class="card">
-      <h2>Nassau — Hole by Hole</h2>
-      <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;line-height:1.5;">
+      <h2>Nassau &mdash; Hole by Hole</h2>
+      <p style="font-size:.8rem;color:var(--ink-dim);margin-bottom:10px;line-height:1.5;">
         Best net score from each team per hole. Lower best net wins the hole.
       </p>
       <div class="table-outer">
@@ -808,31 +900,30 @@
   </div>
 
   <div style="padding: 0 16px 28px;">
-    <button class="btn btn-secondary" onclick="goStep(2)">← Back</button>
+    <button class="btn btn-secondary" onclick="goStep(2)">&larr; Back</button>
     <button class="btn btn-secondary mt-10" onclick="startOver()">Start New Round</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
+<!-- =============================================
      JavaScript
-═══════════════════════════════════════════ -->
+============================================= -->
 <script>
-  /* ── State ── */
+  /* -- State -- */
   let state = {
     imageFile:      null,
     extractedData:  null,
     numHoles:       18,
     nextPlayerIdx:  0,
     nextTeamIdx:    0,
-    selectedGame:   null,   // 'skins' | 'betterball' | 'vegas' | 'quota' | 'nassau'
+    selectedGame:   null,
   };
 
-  /* ── Navigation ── */
+  /* -- Navigation -- */
   function goStep(n) {
     [0, 1, 2, 3].forEach(i => {
       document.getElementById(`step-${i}`).classList.toggle("hidden", i !== n);
     });
-    // Hide step dots on game picker, show otherwise
     document.getElementById("step-dots").classList.toggle("hidden", n === 0);
     if (n > 0) {
       [1, 2, 3].forEach(i => {
@@ -843,13 +934,13 @@
     }
   }
 
-  /* ── Game selection ── */
+  /* -- Game selection -- */
   function selectGame(game) {
     state.selectedGame = game;
     goStep(1);
   }
 
-  /* ── Step 1: file selection ── */
+  /* -- Step 1: file selection -- */
   const fileInput   = document.getElementById("file-input");
   const previewWrap = document.getElementById("preview-wrap");
   const previewImg  = document.getElementById("preview-img");
@@ -890,17 +981,17 @@
   }
 
   function showLoading(msg) {
-    document.getElementById("loading-msg").textContent = msg || "Processing…";
+    document.getElementById("loading-msg").textContent = msg || "Processing\u2026";
     document.getElementById("loading").classList.add("show");
   }
   function hideLoading() { document.getElementById("loading").classList.remove("show"); }
 
-  /* ── Step 1 → extract ── */
+  /* -- Step 1 -> extract -- */
   async function analyzeScorecard() {
     clearError("error-1");
     if (!state.imageFile) return;
 
-    showLoading("Analyzing scorecard with AI…");
+    showLoading("Analyzing scorecard with AI\u2026");
     analyzeBtn.disabled = true;
 
     const form = new FormData();
@@ -927,7 +1018,7 @@
     }
   }
 
-  /* ── Step 2: render editable review table ── */
+  /* -- Step 2: render editable review table -- */
   function teamHeaderHtml(ti, teamName) {
     const n = state.numHoles;
     return `<tr id='team-header-${ti}' class='team-header-row' data-team='${ti}'>
@@ -944,12 +1035,10 @@
     state.nextPlayerIdx = 0;
     state.nextTeamIdx   = 0;
 
-    /* Header row */
     let html = "<thead><tr><th>Field</th>";
     for (let i = 0; i < n; i++) html += `<th>${data.holes[i].number}</th>`;
     html += "</tr></thead><tbody>";
 
-    /* Par row */
     html += "<tr><td class='label-cell'>Par</td>";
     for (let i = 0; i < n; i++) {
       const p = data.holes[i].par ?? "";
@@ -957,7 +1046,6 @@
     }
     html += "</tr>";
 
-    /* HCP rating row */
     html += "<tr><td class='label-cell'>HCP Rating</td>";
     for (let i = 0; i < n; i++) {
       const r = data.holes[i].handicap_rating ?? "";
@@ -965,7 +1053,6 @@
     }
     html += "</tr>";
 
-    /* Team 1 header + players from first scorecard */
     html += teamHeaderHtml(0, "Team 1");
     state.nextTeamIdx = 1;
     data.players.forEach(p => {
@@ -1011,7 +1098,7 @@
     return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
   }
 
-  /* ── Step 2 → Quota calculate ── */
+  /* -- Step 2 -> Quota calculate -- */
   async function calculateQuota() {
     clearError("error-2");
     const n = state.numHoles;
@@ -1056,7 +1143,7 @@
       return;
     }
 
-    showLoading("Calculating Quota…");
+    showLoading("Calculating Quota\u2026");
 
     try {
       const res  = await fetch("/calculate_quota", {
@@ -1082,11 +1169,10 @@
     }
   }
 
-  /* ── Step 3: render Quota results ── */
+  /* -- Step 3: render Quota results -- */
   function renderQuotaResults(data) {
     const pointLabel = { "-2": "Eagle", "-1": "Birdie", "0": "Par", "1": "Bogey" };
 
-    /* Standings table */
     const st = document.getElementById("quota-standings");
     let sHtml = `<thead><tr>
       <th>Player</th><th>Quota</th><th>Earned</th><th>vs Quota</th>
@@ -1095,7 +1181,7 @@
       const vsQ    = r.vs_quota >= 0 ? `+${r.vs_quota}` : `${r.vs_quota}`;
       const winner = i === 0 ? "gross-win" : "";
       sHtml += `<tr>
-        <td style='text-align:left;${i===0?"font-weight:700;":""}'>${escHtml(r.name)}${i===0 ? " 🏆" : ""}</td>
+        <td style='text-align:left;${i===0?"font-weight:700;":""}'>${escHtml(r.name)}${i===0 ? " \u{1F3C6}" : ""}</td>
         <td>${r.quota}</td>
         <td>${r.earned}</td>
         <td class='${winner}'>${vsQ}</td>
@@ -1104,7 +1190,6 @@
     sHtml += "</tbody>";
     st.innerHTML = sHtml;
 
-    /* Hole by hole table */
     const qt      = document.getElementById("quota-table");
     const players = data.results.map(r => r.name);
     let html = `<thead><tr><th>Hole</th><th>Par</th>`;
@@ -1119,14 +1204,13 @@
         const cls     = p.diff <= -1 ? "net-win" : "";
         html += `<td class='${cls}'>
           <div class='score-gross'>${p.gross} <span style='font-size:.75rem;font-weight:400;'>(${diffStr})</span></div>
-          <div class='score-net'>${p.points}pt — ${label}</div>
+          <div class='score-net'>${p.points}pt \u2014 ${label}</div>
         </td>`;
       });
       html += `</tr>`;
     });
 
-    /* Totals row */
-    html += `<tr style='font-weight:700;background:#f8f9fa;'><td colspan='2'>Total</td>`;
+    html += `<tr style='font-weight:700;background:var(--linen);'><td colspan='2'>Total</td>`;
     data.results.forEach(r => {
       html += `<td>${r.earned} / ${r.quota} (${r.vs_quota >= 0 ? "+" : ""}${r.vs_quota})</td>`;
     });
@@ -1134,7 +1218,7 @@
     qt.innerHTML = html;
   }
 
-  /* ── Step 2 → Vegas calculate ── */
+  /* -- Step 2 -> Vegas calculate -- */
   async function calculateVegas() {
     clearError("error-2");
     const n = state.numHoles;
@@ -1150,7 +1234,6 @@
       holes.push({ number: i + 1, par, handicap_rating: hcp });
     }
 
-    /* Collect players in order — Vegas splits first 2 vs last 2 */
     const players = [];
     const tbody   = document.querySelector("#review-table tbody");
     const rows    = tbody.querySelectorAll("tr[id^='player-row-']");
@@ -1176,11 +1259,11 @@
     }
 
     if (players.length !== 4) {
-      showError("error-2", `Vegas requires exactly 4 players — ${players.length} found.`);
+      showError("error-2", `Vegas requires exactly 4 players \u2014 ${players.length} found.`);
       return;
     }
 
-    showLoading("Calculating Vegas…");
+    showLoading("Calculating Vegas\u2026");
 
     try {
       const res  = await fetch("/calculate_vegas", {
@@ -1206,12 +1289,11 @@
     }
   }
 
-  /* ── Step 3: render Vegas results ── */
+  /* -- Step 3: render Vegas results -- */
   function renderVegasResults(data, players) {
     const t1Names = `${escHtml(players[0].name)} &amp; ${escHtml(players[1].name)}`;
     const t2Names = `${escHtml(players[2].name)} &amp; ${escHtml(players[3].name)}`;
 
-    /* Winner banner */
     const winnerEl = document.getElementById("vegas-winner");
     const winnerName = data.winner === 1 ? t1Names : data.winner === 2 ? t2Names : null;
     if (winnerName) {
@@ -1222,7 +1304,6 @@
         <div class='win-detail'>Both teams: ${data.t1_total} points</div></div>`;
     }
 
-    /* Hole by hole table */
     const vt = document.getElementById("vegas-table");
     let html = `<thead><tr>
       <th>Hole</th><th>Par</th>
@@ -1236,12 +1317,12 @@
       const t2won = hole.t2_pts > 0;
 
       const playerCell = (details) => details.map(d => {
-        const birdie = d.birdie ? `<span class='birdie-flag'>★</span>` : "";
-        return `${escHtml(d.name)}: ${d.gross}→<strong>${d.net}</strong>${birdie}`;
+        const birdie = d.birdie ? `<span class='birdie-flag'>\u2605</span>` : "";
+        return `${escHtml(d.name)}: ${d.gross}\u2192<strong>${d.net}</strong>${birdie}`;
       }).join("<br>");
 
-      const t1Flip = hole.t2_birdied ? `<div class='flipped-label'>↔ flipped</div>` : "";
-      const t2Flip = hole.t1_birdied ? `<div class='flipped-label'>↔ flipped</div>` : "";
+      const t1Flip = hole.t2_birdied ? `<div class='flipped-label'>\u21C4 flipped</div>` : "";
+      const t2Flip = hole.t1_birdied ? `<div class='flipped-label'>\u21C4 flipped</div>` : "";
 
       const running = hole.t1_running > hole.t2_running
         ? `${t1Names} +${hole.t1_running - hole.t2_running}`
@@ -1257,14 +1338,13 @@
         <td style='text-align:left;font-size:.78rem;'>${playerCell(hole.t2_details)}</td>
         <td class='${t2won ? "gross-win" : ""}'><div class='vegas-number'>${hole.t2_number}</div>${t2Flip}</td>
         <td class='${t2won ? "gross-win" : ""}'><span class='vegas-pts ${t2won ? "earned" : ""}'>${hole.t2_pts}</span></td>
-        <td style='font-size:.75rem;color:var(--muted);'>${running}</td>
+        <td style='font-size:.75rem;color:var(--ink-dim);'>${running}</td>
       </tr>`;
     });
 
-    /* Totals row */
     const t1wins = data.t1_total > data.t2_total;
     const t2wins = data.t2_total > data.t1_total;
-    html += `<tr style='font-weight:700;background:#f8f9fa;'>
+    html += `<tr style='font-weight:700;background:var(--linen);'>
       <td colspan='2'>Total</td>
       <td></td>
       <td class='${t1wins ? "gross-win" : ""}'></td>
@@ -1277,14 +1357,14 @@
     vt.innerHTML = html;
   }
 
-  /* ── Step 2: merge additional scorecard ── */
+  /* -- Step 2: merge additional scorecard -- */
   async function mergeScorecard(input) {
     const file = input.files[0];
     if (!file) return;
-    input.value = "";   // reset so same file can be re-selected if needed
+    input.value = "";
 
     clearError("error-2");
-    showLoading("Analyzing additional scorecard…");
+    showLoading("Analyzing additional scorecard\u2026");
 
     const form = new FormData();
     form.append("image", file);
@@ -1294,7 +1374,6 @@
       const body = await res.json();
       if (!res.ok || !body.success) throw new Error(body.error || "Unknown error from server.");
 
-      /* Add a new team header, then append the players from this scorecard */
       const tbody = document.querySelector("#review-table tbody");
       const ti    = state.nextTeamIdx++;
       tbody.insertAdjacentHTML("beforeend", teamHeaderHtml(ti, `Team ${ti + 1}`));
@@ -1310,12 +1389,11 @@
     }
   }
 
-  /* ── Step 2 → calculate ── */
+  /* -- Step 2 -> calculate -- */
   async function calculateSkins() {
     clearError("error-2");
     const n = state.numHoles;
 
-    /* Collect hole data */
     const holes = [];
     for (let i = 0; i < n; i++) {
       const par = parseInt(document.getElementById(`par-${i}`)?.value);
@@ -1327,7 +1405,6 @@
       holes.push({ number: i + 1, par, handicap_rating: hcp });
     }
 
-    /* Collect player data */
     const players = [];
     const tbody   = document.querySelector("#review-table tbody");
     const rows    = tbody.querySelectorAll("tr[id^='player-row-']");
@@ -1338,7 +1415,7 @@
       const hcpRaw  = document.getElementById(`phcp-${pi}`)?.value;
       const handicap = parseInt(hcpRaw);
 
-      if (!name) continue;  // skip blank rows
+      if (!name) continue;
       if (isNaN(handicap) || handicap < 0) {
         showError("error-2", `Please enter a valid handicap index for ${name || "a player"}.`);
         return;
@@ -1361,7 +1438,7 @@
       return;
     }
 
-    showLoading("Calculating skins…");
+    showLoading("Calculating skins\u2026");
 
     try {
       const res  = await fetch("/calculate", {
@@ -1388,9 +1465,8 @@
     }
   }
 
-  /* ── Step 3: render results ── */
+  /* -- Step 3: render results -- */
   function renderResults(data, playerNames) {
-    /* Scorecard table */
     const rt = document.getElementById("results-table");
     let html = "<thead><tr><th>Hole</th><th>Par</th><th>HCP</th>";
     playerNames.forEach(n => html += `<th>${escHtml(n)}</th>`);
@@ -1410,17 +1486,16 @@
 
       const gw = hole.gross_winner
         ? `<span class='winner-badge badge-gross'>${escHtml(hole.gross_winner)}</span>`
-        : `<span class='winner-badge badge-none'>–</span>`;
+        : `<span class='winner-badge badge-none'>\u2013</span>`;
       const nw = hole.net_winner
         ? `<span class='winner-badge badge-net'>${escHtml(hole.net_winner)}</span>`
-        : `<span class='winner-badge badge-none'>–</span>`;
+        : `<span class='winner-badge badge-none'>\u2013</span>`;
       html += `<td>${gw}</td><td>${nw}</td></tr>`;
     });
 
     html += "</tbody>";
     rt.innerHTML = html;
 
-    /* Gross skin list */
     const gl = document.getElementById("gross-list");
     let anyGross = false;
     let gHtml = "";
@@ -1431,9 +1506,8 @@
                       <strong>${escHtml(h.gross_winner)}</strong></li>`;
       }
     });
-    gl.innerHTML = anyGross ? gHtml : "<li><span style='color:var(--muted)'>No gross skin winners</span></li>";
+    gl.innerHTML = anyGross ? gHtml : "<li><span style='color:var(--ink-dim)'>No gross skin winners</span></li>";
 
-    /* Net skin list */
     const nl = document.getElementById("net-list");
     let anyNet = false;
     let nHtml = "";
@@ -1444,9 +1518,8 @@
                       <strong>${escHtml(h.net_winner)}</strong></li>`;
       }
     });
-    nl.innerHTML = anyNet ? nHtml : "<li><span style='color:var(--muted)'>No net skin winners</span></li>";
+    nl.innerHTML = anyNet ? nHtml : "<li><span style='color:var(--ink-dim)'>No net skin winners</span></li>";
 
-    /* Tally */
     const tt = document.getElementById("tally-table");
     let tHtml = "<thead><tr><th>Player</th><th>Gross Skins</th><th>Net Skins</th></tr></thead><tbody>";
     Object.entries(data.tally)
@@ -1459,13 +1532,12 @@
     tt.innerHTML = tHtml;
   }
 
-  /* ── Step 2: collect teams from review table (for Better Ball) ── */
+  /* -- Step 2: collect teams from review table (for Better Ball) -- */
   function collectTeams() {
     const n      = state.numHoles;
     const tbody  = document.querySelector("#review-table tbody");
     const teamsMap = {};
 
-    /* Seed team name entries */
     for (let ti = 0; ti < state.nextTeamIdx; ti++) {
       const nameEl = document.getElementById(`team-name-${ti}`);
       teamsMap[ti] = { name: nameEl ? nameEl.value.trim() || `Team ${ti + 1}` : `Team ${ti + 1}`, players: [] };
@@ -1495,12 +1567,11 @@
     return { teams };
   }
 
-  /* ── Step 2 → Better Ball calculate ── */
+  /* -- Step 2 -> Better Ball calculate -- */
   async function calculateBetterBall() {
     clearError("error-2");
     const n = state.numHoles;
 
-    /* Collect holes */
     const holes = [];
     for (let i = 0; i < n; i++) {
       const par = parseInt(document.getElementById(`par-${i}`)?.value);
@@ -1519,7 +1590,7 @@
       return;
     }
 
-    showLoading("Calculating Better Ball…");
+    showLoading("Calculating Better Ball\u2026");
 
     try {
       const res  = await fetch("/calculate_better_ball", {
@@ -1545,16 +1616,14 @@
     }
   }
 
-  /* ── Step 3: render Better Ball results ── */
+  /* -- Step 3: render Better Ball results -- */
   function renderBetterBallResults(data) {
     const teamNames = data.team_names;
 
-    /* Course par doubled (2 scores per hole) */
     const coursePar    = data.holes.reduce((sum, h) => sum + h.par, 0);
     const bbPar        = coursePar * 2;
     const fmtVsPar     = v => v === 0 ? "E" : (v > 0 ? `+${v}` : `${v}`);
 
-    /* Winner banner */
     const minTotal = data.min_total;
     const winners  = teamNames.filter((_, i) => data.team_totals[i] === minTotal);
     const winnerEl = document.getElementById("bb-winner");
@@ -1563,13 +1632,12 @@
       winnerEl.innerHTML = `<div class='win-banner'><div class='win-name'>${escHtml(winners[0])}</div>
         <div class='win-detail'>Total: ${minTotal} (${winVsPar} vs par ${bbPar})</div></div>`;
     } else {
-      winnerEl.innerHTML = `<div class='win-banner'><div class='win-tie'>Tie — ${winners.map(escHtml).join(" &amp; ")}</div>
+      winnerEl.innerHTML = `<div class='win-banner'><div class='win-tie'>Tie \u2014 ${winners.map(escHtml).join(" &amp; ")}</div>
         <div class='win-detail'>Total: ${minTotal} (${winVsPar} vs par ${bbPar})</div></div>`;
     }
 
-    /* Team scores table */
     const bt = document.getElementById("bb-table");
-    let html = "<thead><tr><th>Hole</th><th>Par ×2</th>";
+    let html = "<thead><tr><th>Hole</th><th>Par \u00D72</th>";
     teamNames.forEach(n => html += `<th>${escHtml(n)}</th>`);
     html += "</tr></thead><tbody>";
 
@@ -1579,17 +1647,16 @@
       hole.teams.forEach(t => {
         const cls          = t.winner ? "gross-win" : "";
         const contributors = t.contributors.map(c => `${escHtml(c.name)} (${c.net})`).join(", ");
-        const vsPar        = t.team_score != null ? fmtVsPar(t.team_score - holeBbPar) : "—";
+        const vsPar        = t.team_score != null ? fmtVsPar(t.team_score - holeBbPar) : "\u2014";
         html += `<td class='${cls}'>`;
-        html += `<div class='score-gross'>${t.team_score ?? "—"} <span style='font-weight:400;font-size:.8rem;color:inherit;'>(${vsPar})</span></div>`;
+        html += `<div class='score-gross'>${t.team_score ?? "\u2014"} <span style='font-weight:400;font-size:.8rem;color:inherit;'>(${vsPar})</span></div>`;
         html += `<div class='score-net'>${contributors}</div>`;
         html += `</td>`;
       });
       html += "</tr>";
     });
 
-    /* Totals row */
-    html += `<tr style='font-weight:700;background:#f8f9fa;'><td>Total</td><td>${bbPar}</td>`;
+    html += `<tr style='font-weight:700;background:var(--linen);'><td>Total</td><td>${bbPar}</td>`;
     data.team_totals.forEach((total, i) => {
       const cls    = total === minTotal ? "gross-win" : "";
       const vsPar  = fmtVsPar(total - bbPar);
@@ -1599,7 +1666,7 @@
     bt.innerHTML = html;
   }
 
-  /* ── Step 2 → Nassau calculate ── */
+  /* -- Step 2 -> Nassau calculate -- */
   async function calculateNassau() {
     clearError("error-2");
     const n = state.numHoles;
@@ -1640,11 +1707,11 @@
     }
 
     if (players.length !== 4) {
-      showError("error-2", `Nassau requires exactly 4 players — ${players.length} found.`);
+      showError("error-2", `Nassau requires exactly 4 players \u2014 ${players.length} found.`);
       return;
     }
 
-    showLoading("Calculating Nassau…");
+    showLoading("Calculating Nassau\u2026");
 
     try {
       const res  = await fetch("/calculate_nassau", {
@@ -1669,19 +1736,17 @@
     }
   }
 
-  /* ── Step 3: render Nassau results ── */
+  /* -- Step 3: render Nassau results -- */
   function renderNassauResults(data, players) {
     const t1Name = `${escHtml(players[0].name)} &amp; ${escHtml(players[1].name)}`;
     const t2Name = `${escHtml(players[2].name)} &amp; ${escHtml(players[3].name)}`;
 
-    /* Build hole → segment status lookup */
     const frontHoles = data.holes.filter(h => h.number <= 9);
     const backHoles  = data.holes.filter(h => h.number > 9);
     const holeStatusMap = {};
     if (data.front) data.front.hole_statuses.forEach((s, i) => { holeStatusMap[frontHoles[i].number] = s; });
     if (data.back)  data.back.hole_statuses.forEach((s, i)  => { holeStatusMap[backHoles[i].number]  = s; });
 
-    /* Bets section — one block per segment, each match listed */
     const segDefs = [
       { key: "front", label: "Front 9"  },
       { key: "back",  label: "Back 9"   },
@@ -1693,21 +1758,21 @@
       const seg = data[key];
       if (!seg) return;
       betsHtml += `<div style="margin-bottom:18px;">
-        <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">${label}</div>`;
+        <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:.78rem;font-weight:600;color:var(--gold-dk);text-transform:uppercase;letter-spacing:.16em;margin-bottom:8px;">${label}</div>`;
 
       seg.matches.forEach(m => {
         const winnerName = m.winner === 1 ? t1Name : m.winner === 2 ? t2Name : null;
         const winHtml    = winnerName
-          ? `<span style="font-weight:700;color:var(--green);">${winnerName}</span>`
-          : `<span style="color:var(--muted);">All Square</span>`;
+          ? `<span style="font-weight:700;color:var(--augusta);">${winnerName}</span>`
+          : `<span style="color:var(--ink-dim);">All Square</span>`;
         const matchLabel = m.is_auto
-          ? `Press ${m.match_num} (holes ${m.start_hole}–${m.end_hole})`
-          : `Original (holes ${m.start_hole}–${m.end_hole})`;
-        const border = m.is_auto ? "border-left:3px solid var(--gold-dk);" : "border-left:3px solid var(--green);";
+          ? `Press ${m.match_num} (holes ${m.start_hole}\u2013${m.end_hole})`
+          : `Original (holes ${m.start_hole}\u2013${m.end_hole})`;
+        const border = m.is_auto ? "border-left:4px solid var(--gold);" : "border-left:4px solid var(--augusta);";
 
-        betsHtml += `<div style="border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px;${border}">
+        betsHtml += `<div style="border:1px solid var(--border-lt);border-radius:var(--radius);padding:12px 16px;margin-bottom:8px;background:var(--linen);${border}">
           <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:.8rem;font-weight:600;">${matchLabel}</span>
+            <span style="font-size:.82rem;font-weight:600;">${matchLabel}</span>
             ${winHtml}
           </div>
         </div>`;
@@ -1717,7 +1782,6 @@
     });
     document.getElementById("nassau-bets").innerHTML = betsHtml;
 
-    /* Hole-by-hole table */
     const nt = document.getElementById("nassau-table");
     let html = `<thead><tr>
       <th>Hole</th><th>Par</th>
@@ -1728,12 +1792,11 @@
 
     data.holes.forEach(hole => {
       const resultLabel = hole.result === 1
-        ? `<span style="color:var(--green);font-weight:700;">T1 ✓</span>`
+        ? `<span style="color:var(--augusta);font-weight:700;">T1 \u2713</span>`
         : hole.result === 2
-          ? `<span style="color:var(--red);font-weight:700;">T2 ✓</span>`
-          : `<span style="color:var(--muted);">Halved</span>`;
+          ? `<span style="color:var(--azalea);font-weight:700;">T2 \u2713</span>`
+          : `<span style="color:var(--ink-dim);">Halved</span>`;
 
-      /* Build match status cell from segment annotation */
       const ann = holeStatusMap[hole.number];
       let statusHtml = "";
       if (ann) {
@@ -1743,14 +1806,14 @@
           return `<span style="font-size:.72rem;white-space:nowrap;">${lbl}: <strong>${stat}</strong></span>`;
         }).join("<br>");
         if (ann.auto_opens) {
-          statusHtml += `<br><span style="font-size:.7rem;color:var(--gold-dk);font-weight:700;">⚡ Press</span>`;
+          statusHtml += `<br><span style="font-size:.7rem;color:var(--gold-dk);font-weight:700;">\u26A1 Press</span>`;
         }
       }
 
       const playerCell = (details, bestNet) =>
         details.map(d => {
-          const s = d.net === bestNet ? "font-weight:700;" : "color:var(--muted);";
-          return `<span style="${s}">${escHtml(d.name)}: ${d.gross}→${d.net}</span>`;
+          const s = d.net === bestNet ? "font-weight:700;" : "color:var(--ink-dim);";
+          return `<span style="${s}">${escHtml(d.name)}: ${d.gross}\u2192${d.net}</span>`;
         }).join("<br>");
 
       const t1cls = hole.result === 1 ? "gross-win" : "";
@@ -1771,7 +1834,7 @@
     nt.innerHTML = html;
   }
 
-  /* ── Reset ── */
+  /* -- Reset -- */
   function startOver() {
     state = { imageFile: null, extractedData: null, numHoles: 18, nextPlayerIdx: 0, nextTeamIdx: 0, selectedGame: null };
     fileInput.value = "";
@@ -1787,7 +1850,7 @@
     goStep(0);
   }
 
-  /* ── Init: start on game picker ── */
+  /* -- Init: start on game picker -- */
   goStep(0);
 </script>
 </body>
