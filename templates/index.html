@@ -1211,7 +1211,10 @@
     });
 
     html += `<tr style='font-weight:700;background:var(--linen);'><td colspan='2'>Total</td>`;
-    data.results.forEach(r => {
+    const resultsByName = {};
+    data.results.forEach(r => { resultsByName[r.name] = r; });
+    players.forEach(name => {
+      const r = resultsByName[name];
       html += `<td>${r.earned} / ${r.quota} (${r.vs_quota >= 0 ? "+" : ""}${r.vs_quota})</td>`;
     });
     html += `</tr></tbody>`;
