@@ -50,6 +50,20 @@ def strokes_received(handicap: int, hole_rating: int) -> int:
     return base + extra
 
 
+def parse_score(s) -> Optional[int]:
+    """Parse a score cell into an int or None. 'X', 'x', '', and None all map to None."""
+    if s is None:
+        return None
+    if isinstance(s, str):
+        s = s.strip()
+        if s == "" or s.lower() == "x":
+            return None
+    try:
+        return int(s)
+    except (ValueError, TypeError):
+        return None
+
+
 def find_skins(
     players: list[Player],
     holes: list[Hole],
@@ -60,10 +74,15 @@ def find_skins(
         scores: dict[str, int] = {}
         for player in players:
             gross = player.scores[hole.number - 1]
+            if gross is None:
+                continue
             scores[player.name] = (
                 gross - strokes_received(player.handicap, hole.handicap_rating)
                 if use_net else gross
             )
+        if not scores:
+            results[hole.number] = None
+            continue
         low     = min(scores.values())
         leaders = [name for name, s in scores.items() if s == low]
         results[hole.number] = leaders[0] if len(leaders) == 1 else None
@@ -85,6 +104,9 @@ def vegas_scores(
         def player_detail(p: Player):
             gross   = p.scores[hole.number - 1]
             strokes = strokes_received(p.handicap, hole.handicap_rating)
+            if gross is None:
+                # No score: penalize with cap (par+2), no birdie
+                return {"name": p.name, "gross": None, "net": cap, "strokes": strokes, "birdie": False}
             net     = min(gross - strokes, cap)
             birdie  = gross < hole.par
             return {"name": p.name, "gross": gross, "net": net, "strokes": strokes, "birdie": birdie}
@@ -154,6 +176,13 @@ def quota_scores(
         hole_players = []
         for p in players:
             gross    = p.scores[hole.number - 1]
+            if gross is None:
+                hole_players.append({
+                    "name": p.name, "gross": None,
+                    "diff": None, "points": 0,
+                    "running": earned[p.name],
+                })
+                continue
             diff     = gross - hole.par
             pts      = QUOTA_POINTS.get(diff, 0)
             earned[p.name] += pts
@@ -185,11 +214,13 @@ def nassau_scores(
     team1: list[Player],
     team2: list[Player],
     holes: list[Hole],
+    press_threshold: Optional[int] = 2,
 ) -> dict:
     """
     2v2 best-ball match play Nassau with autos (presses).
-    Autos: when a team goes exactly 2 down in any active match within a 9-hole
-    segment, a new independent match opens on the next hole. Autos can stack.
+    Autos: when a team goes exactly `press_threshold` down in any active match
+    within a 9-hole segment, a new independent match opens on the next hole.
+    Autos can stack. Set press_threshold=None to disable autos.
     3 segments: front 9 (with autos), back 9 (with autos), total 18 (no autos).
     """
     all_players = team1 + team2
@@ -200,13 +231,24 @@ def nassau_scores(
         def player_detail(p: Player, _min=min_hcp):
             gross   = p.scores[hole.number - 1]
             strokes = strokes_received(p.handicap - _min, hole.handicap_rating)
+            if gross is None:
+                return {"name": p.name, "gross": None, "net": None, "strokes": strokes}
             return {"name": p.name, "gross": gross, "net": gross - strokes, "strokes": strokes}
 
         t1_details = [player_detail(p) for p in team1]
         t2_details = [player_detail(p) for p in team2]
-        t1_best = min(d["net"] for d in t1_details)
-        t2_best = min(d["net"] for d in t2_details)
-        result  = 1 if t1_best < t2_best else (2 if t2_best < t1_best else 0)
+        t1_nets = [d["net"] for d in t1_details if d["net"] is not None]
+        t2_nets = [d["net"] for d in t2_details if d["net"] is not None]
+        t1_best = min(t1_nets) if t1_nets else None
+        t2_best = min(t2_nets) if t2_nets else None
+        if t1_best is None and t2_best is None:
+            result = 0
+        elif t1_best is None:
+            result = 2
+        elif t2_best is None:
+            result = 1
+        else:
+            result  = 1 if t1_best < t2_best else (2 if t2_best < t1_best else 0)
 
         hole_results.append({
             "number":     hole.number,
@@ -218,7 +260,7 @@ def nassau_scores(
             "result":     result,
         })
 
-    def process_segment(hrs: list[dict], with_autos: bool = True) -> Optional[dict]:
+    def process_segment(hrs: list[dict], threshold: Optional[int] = 2) -> Optional[dict]:
         if not hrs:
             return None
 
@@ -238,10 +280,10 @@ def nassau_scores(
                 elif hole["result"] == 2:
                     match["t2w"] += 1
                 diff = match["t1w"] - match["t2w"]
-                # Trigger auto when diff just reaches ±2 (was ±1) and holes remain
-                if (with_autos
-                        and abs(diff) == 2
-                        and abs(match["prev_diff"]) == 1
+                # Trigger auto when diff just reaches ±threshold (was ±threshold-1) and holes remain
+                if (threshold is not None
+                        and abs(diff) == threshold
+                        and abs(match["prev_diff"]) == threshold - 1
                         and idx + 1 < len(hrs)):
                     new_presses.append({
                         "start_idx": idx + 1,
@@ -283,9 +325,9 @@ def nassau_scores(
 
     return {
         "holes": hole_results,
-        "front": process_segment(front, with_autos=True),
-        "back":  process_segment(back,  with_autos=True),
-        "total": process_segment(hole_results, with_autos=False),
+        "front": process_segment(front, threshold=press_threshold),
+        "back":  process_segment(back,  threshold=press_threshold),
+        "total": process_segment(hole_results, threshold=None),
     }
 
 
@@ -304,12 +346,19 @@ def better_ball_scores(
             for player in team:
                 gross   = player.scores[hole.number - 1]
                 strokes = strokes_received(player.handicap, hole.handicap_rating)
-                net_scores.append({
-                    "name": player.name, "gross": gross,
-                    "net": gross - strokes, "strokes": strokes,
-                })
-            net_scores.sort(key=lambda x: x["net"])
-            best_two   = net_scores[:2]
+                if gross is None:
+                    net_scores.append({
+                        "name": player.name, "gross": None,
+                        "net": None, "strokes": strokes,
+                    })
+                else:
+                    net_scores.append({
+                        "name": player.name, "gross": gross,
+                        "net": gross - strokes, "strokes": strokes,
+                    })
+            contributing = [s for s in net_scores if s["net"] is not None]
+            contributing.sort(key=lambda x: x["net"])
+            best_two   = contributing[:2]
             team_score = sum(s["net"] for s in best_two) if len(best_two) >= 2 else None
             if team_score is not None:
                 team_totals[ti] += team_score
@@ -447,7 +496,7 @@ def calculate():
 
         players = []
         for p in body["players"]:
-            scores = [int(s) for s in p["scores"]]
+            scores = [parse_score(s) for s in p["scores"]]
             players.append(Player(name=p["name"], handicap=int(p["handicap"]),
                                   scores=scores))
 
@@ -460,10 +509,16 @@ def calculate():
             for p in players:
                 gross  = p.scores[hole.number - 1]
                 shots  = strokes_received(p.handicap, hole.handicap_rating)
-                player_scores.append({
-                    "name": p.name, "gross": gross,
-                    "net": gross - shots, "strokes": shots,
-                })
+                if gross is None:
+                    player_scores.append({
+                        "name": p.name, "gross": None,
+                        "net": None, "strokes": shots,
+                    })
+                else:
+                    player_scores.append({
+                        "name": p.name, "gross": gross,
+                        "net": gross - shots, "strokes": shots,
+                    })
             hole_results.append({
                 "number":          hole.number,
                 "par":             hole.par,
@@ -502,7 +557,7 @@ def calculate_quota():
         ]
         players = []
         for p in body["players"]:
-            scores = [int(s) for s in p["scores"]]
+            scores = [parse_score(s) for s in p["scores"]]
             players.append(Player(name=p["name"], handicap=int(p["handicap"]),
                                   scores=scores))
 
@@ -531,7 +586,7 @@ def calculate_vegas():
 
         players = []
         for p in body["players"]:
-            scores = [int(s) for s in p["scores"]]
+            scores = [parse_score(s) for s in p["scores"]]
             players.append(Player(name=p["name"], handicap=int(p["handicap"]),
                                   scores=scores))
 
@@ -559,14 +614,18 @@ def calculate_nassau():
         ]
         players = []
         for p in body["players"]:
-            scores = [int(s) for s in p["scores"]]
+            scores = [parse_score(s) for s in p["scores"]]
             players.append(Player(name=p["name"], handicap=int(p["handicap"]),
                                   scores=scores))
 
         if len(players) != 4:
             return jsonify({"error": "Nassau requires exactly 4 players."}), 422
 
-        result = nassau_scores(players[:2], players[2:], holes)
+        raw_threshold = body.get("press_threshold", 2)
+        press_threshold = None if raw_threshold is None else int(raw_threshold)
+
+        result = nassau_scores(players[:2], players[2:], holes,
+                               press_threshold=press_threshold)
         return jsonify({"success": True, **result})
 
     except (KeyError, TypeError, ValueError) as e:
@@ -592,7 +651,7 @@ def calculate_better_ball():
             team_names.append(t.get("name", f"Team {len(teams) + 1}"))
             players = []
             for p in t["players"]:
-                scores = [int(s) for s in p["scores"]]
+                scores = [parse_score(s) for s in p["scores"]]
                 players.append(Player(name=p["name"], handicap=int(p["handicap"]),
                                       scores=scores))
             teams.append(players)

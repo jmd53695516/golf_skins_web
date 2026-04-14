@@ -642,6 +642,90 @@
       margin-bottom: 5px;
     }
 
+    /* ---- Nassau Settings ---- */
+    .nassau-settings {
+      background: var(--linen);
+      border: 1px solid var(--border-lt);
+      border-left: 3px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: none;
+    }
+    .nassau-settings.show { display: block; }
+    .nassau-setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .nassau-setting-row + .nassau-setting-row { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-lt); }
+    .holes-down-label {
+      font-size: .88rem;
+      font-weight: 600;
+      color: var(--ink-mid);
+    }
+    .nassau-settings input[type="number"] {
+      width: 64px;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      text-align: center;
+      font-size: .9rem;
+      font-family: 'Libre Franklin', sans-serif;
+      background: #fff;
+      color: var(--ink);
+    }
+    .nassau-settings input[type="number"]:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 6px rgba(200,169,81,.2);
+    }
+    .toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle-label input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      background: var(--border);
+      border-radius: 22px;
+      transition: background .25s ease;
+      flex-shrink: 0;
+    }
+    .toggle-slider::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform .25s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,.15);
+    }
+    .toggle-label input:checked ~ .toggle-slider {
+      background: var(--augusta);
+    }
+    .toggle-label input:checked ~ .toggle-slider::after {
+      transform: translateX(18px);
+    }
+    .toggle-text {
+      font-size: .88rem;
+      font-weight: 600;
+      color: var(--ink-mid);
+    }
+
     /* ---- Utility ---- */
     .hidden { display: none !important; }
     .mt-10  { margin-top: 10px; }
@@ -795,6 +879,20 @@
     <button class="btn btn-primary mt-10" onclick="calculateBetterBall()">2 Net Better Ball</button>
     <button class="btn btn-primary mt-10" onclick="calculateVegas()">Vegas</button>
     <button class="btn btn-primary mt-10" onclick="calculateQuota()">Quota</button>
+
+    <div id="nassau-settings" class="nassau-settings mt-10">
+      <div class="nassau-setting-row">
+        <label class="toggle-label">
+          <input type="checkbox" id="nassau-presses" checked />
+          <span class="toggle-slider"></span>
+          <span class="toggle-text">Auto Presses</span>
+        </label>
+      </div>
+      <div class="nassau-setting-row">
+        <label for="nassau-threshold" class="holes-down-label">Holes Down</label>
+        <input type="number" id="nassau-threshold" value="2" min="1" max="9" />
+      </div>
+    </div>
     <button class="btn btn-primary mt-10" onclick="calculateNassau()">Nassau</button>
     <button class="btn btn-secondary mt-10" onclick="goStep(1)">&larr; Back</button>
   </div>
@@ -937,6 +1035,7 @@
   /* -- Game selection -- */
   function selectGame(game) {
     state.selectedGame = game;
+    document.getElementById("nassau-settings").classList.toggle("show", game === 'nassau');
     goStep(1);
   }
 
@@ -1053,11 +1152,20 @@
     }
     html += "</tr>";
 
-    html += teamHeaderHtml(0, "Team 1");
-    state.nextTeamIdx = 1;
-    data.players.forEach(p => {
+    const isTwoTeam = state.selectedGame === 'nassau' || state.selectedGame === 'vegas';
+    const isIndividual = state.selectedGame === 'quota' || state.selectedGame === 'skins';
+    if (!isIndividual) {
+      html += teamHeaderHtml(0, "Team 1");
+      state.nextTeamIdx = 1;
+    }
+    data.players.forEach((p, idx) => {
+      if (isTwoTeam && idx === 2) {
+        html += teamHeaderHtml(1, "Team 2");
+        state.nextTeamIdx = 2;
+      }
       const pi = state.nextPlayerIdx++;
-      html += playerRowHtml(pi, p.name, p.handicap ?? "", p.scores, n, 0);
+      const ti = (isTwoTeam && idx >= 2) ? 1 : 0;
+      html += playerRowHtml(pi, p.name, p.handicap ?? "", p.scores, n, ti);
     });
 
     html += "</tbody>";
@@ -1075,8 +1183,8 @@
       </div>
     </td>`;
     for (let i = 0; i < n; i++) {
-      const s = scores && scores[i] != null ? scores[i] : "";
-      html += `<td><input type='number' id='score-${pi}-${i}' value='${s}' min='1' max='20' /></td>`;
+      const s = scores && scores[i] != null ? scores[i] : "X";
+      html += `<td><input type='text' inputmode='numeric' id='score-${pi}-${i}' value='${s}' maxlength='3' /></td>`;
     }
     html += "</tr>";
     return html;
@@ -1128,9 +1236,14 @@
       }
       const scores = [];
       for (let i = 0; i < n; i++) {
-        const s = parseInt(document.getElementById(`score-${pi}-${i}`)?.value);
+        const raw = (document.getElementById(`score-${pi}-${i}`)?.value ?? "").trim();
+        if (raw === "" || raw.toLowerCase() === "x") {
+          scores.push(null);
+          continue;
+        }
+        const s = parseInt(raw);
         if (isNaN(s) || s < 1) {
-          showError("error-2", `Missing score for ${name} on hole ${i + 1}.`);
+          showError("error-2", `Invalid score for ${name} on hole ${i + 1}. Enter a number or X.`);
           return;
         }
         scores.push(s);
@@ -1199,6 +1312,13 @@
     data.holes.forEach(hole => {
       html += `<tr><td>${hole.number}</td><td>${hole.par}</td>`;
       hole.players.forEach(p => {
+        if (p.gross == null) {
+          html += `<td style='color:var(--ink-dim);'>
+            <div class='score-gross'>X</div>
+            <div class='score-net'>0pt \u2014 no score</div>
+          </td>`;
+          return;
+        }
         const diffStr = p.diff === 0 ? "E" : p.diff > 0 ? `+${p.diff}` : `${p.diff}`;
         const label   = pointLabel[String(p.diff)] ?? "Double+";
         const cls     = p.diff <= -1 ? "net-win" : "";
@@ -1251,9 +1371,14 @@
       }
       const scores = [];
       for (let i = 0; i < n; i++) {
-        const s = parseInt(document.getElementById(`score-${pi}-${i}`)?.value);
+        const raw = (document.getElementById(`score-${pi}-${i}`)?.value ?? "").trim();
+        if (raw === "" || raw.toLowerCase() === "x") {
+          scores.push(null);
+          continue;
+        }
+        const s = parseInt(raw);
         if (isNaN(s) || s < 1) {
-          showError("error-2", `Missing score for ${name} on hole ${i + 1}.`);
+          showError("error-2", `Invalid score for ${name} on hole ${i + 1}. Enter a number or X.`);
           return;
         }
         scores.push(s);
@@ -1321,7 +1446,8 @@
 
       const playerCell = (details) => details.map(d => {
         const birdie = d.birdie ? `<span class='birdie-flag'>\u2605</span>` : "";
-        return `${escHtml(d.name)}: ${d.gross}\u2192<strong>${d.net}</strong>${birdie}`;
+        const g = d.gross == null ? "X" : d.gross;
+        return `${escHtml(d.name)}: ${g}\u2192<strong>${d.net}</strong>${birdie}`;
       }).join("<br>");
 
       const t1Flip = hole.t2_birdied ? `<div class='flipped-label'>\u21C4 flipped</div>` : "";
@@ -1426,9 +1552,14 @@
 
       const scores = [];
       for (let i = 0; i < n; i++) {
-        const s = parseInt(document.getElementById(`score-${pi}-${i}`)?.value);
+        const raw = (document.getElementById(`score-${pi}-${i}`)?.value ?? "").trim();
+        if (raw === "" || raw.toLowerCase() === "x") {
+          scores.push(null);
+          continue;
+        }
+        const s = parseInt(raw);
         if (isNaN(s) || s < 1) {
-          showError("error-2", `Missing score for ${name} on hole ${i+1}.`);
+          showError("error-2", `Invalid score for ${name} on hole ${i+1}. Enter a number or X.`);
           return;
         }
         scores.push(s);
@@ -1483,8 +1614,9 @@
         const isGW = hole.gross_winner === ps.name;
         const isNW = hole.net_winner   === ps.name;
         const cls  = isGW && isNW ? "both-win" : isGW ? "gross-win" : isNW ? "net-win" : "";
-        const net  = ps.strokes > 0 ? `<div class='score-net'>(${ps.net})</div>` : "";
-        html += `<td class='score-cell ${cls}'><div class='score-gross'>${ps.gross}</div>${net}</td>`;
+        const grossDisp = ps.gross == null ? "X" : ps.gross;
+        const net  = (ps.strokes > 0 && ps.net != null) ? `<div class='score-net'>(${ps.net})</div>` : "";
+        html += `<td class='score-cell ${cls}'><div class='score-gross'>${grossDisp}</div>${net}</td>`;
       });
 
       const gw = hole.gross_winner
@@ -1558,8 +1690,13 @@
 
       const scores = [];
       for (let i = 0; i < n; i++) {
-        const s = parseInt(document.getElementById(`score-${pi}-${i}`)?.value);
-        if (isNaN(s) || s < 1) return { error: `Missing score for ${name} on hole ${i + 1}.` };
+        const raw = (document.getElementById(`score-${pi}-${i}`)?.value ?? "").trim();
+        if (raw === "" || raw.toLowerCase() === "x") {
+          scores.push(null);
+          continue;
+        }
+        const s = parseInt(raw);
+        if (isNaN(s) || s < 1) return { error: `Invalid score for ${name} on hole ${i + 1}. Enter a number or X.` };
         scores.push(s);
       }
       if (!teamsMap[ti]) teamsMap[ti] = { name: `Team ${ti + 1}`, players: [] };
@@ -1699,9 +1836,14 @@
       }
       const scores = [];
       for (let i = 0; i < n; i++) {
-        const s = parseInt(document.getElementById(`score-${pi}-${i}`)?.value);
+        const raw = (document.getElementById(`score-${pi}-${i}`)?.value ?? "").trim();
+        if (raw === "" || raw.toLowerCase() === "x") {
+          scores.push(null);
+          continue;
+        }
+        const s = parseInt(raw);
         if (isNaN(s) || s < 1) {
-          showError("error-2", `Missing score for ${name} on hole ${i + 1}.`);
+          showError("error-2", `Invalid score for ${name} on hole ${i + 1}. Enter a number or X.`);
           return;
         }
         scores.push(s);
@@ -1714,13 +1856,21 @@
       return;
     }
 
+    const pressesOn = document.getElementById("nassau-presses").checked;
+    const thresholdRaw = parseInt(document.getElementById("nassau-threshold").value);
+    if (pressesOn && (isNaN(thresholdRaw) || thresholdRaw < 1)) {
+      showError("error-2", "Holes Down must be a positive integer.");
+      return;
+    }
+    const press_threshold = pressesOn ? thresholdRaw : null;
+
     showLoading("Calculating Nassau\u2026");
 
     try {
       const res  = await fetch("/calculate_nassau", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ holes, players }),
+        body: JSON.stringify({ holes, players, press_threshold }),
       });
       const body = await res.json();
       if (!res.ok || !body.success) throw new Error(body.error || "Calculation failed.");
@@ -1815,6 +1965,9 @@
 
       const playerCell = (details, bestNet) =>
         details.map(d => {
+          if (d.gross == null) {
+            return `<span style="color:var(--ink-dim);">${escHtml(d.name)}: X</span>`;
+          }
           const s = d.net === bestNet ? "font-weight:700;" : "color:var(--ink-dim);";
           return `<span style="${s}">${escHtml(d.name)}: ${d.gross}\u2192${d.net}</span>`;
         }).join("<br>");
@@ -1825,9 +1978,9 @@
       html += `<tr>
         <td>${hole.number}</td><td>${hole.par}</td>
         <td style="text-align:left;font-size:.78rem;">${playerCell(hole.t1_details, hole.t1_best)}</td>
-        <td class="${t1cls}" style="font-weight:700;">${hole.t1_best}</td>
+        <td class="${t1cls}" style="font-weight:700;">${hole.t1_best == null ? "\u2014" : hole.t1_best}</td>
         <td style="text-align:left;font-size:.78rem;">${playerCell(hole.t2_details, hole.t2_best)}</td>
-        <td class="${t2cls}" style="font-weight:700;">${hole.t2_best}</td>
+        <td class="${t2cls}" style="font-weight:700;">${hole.t2_best == null ? "\u2014" : hole.t2_best}</td>
         <td>${resultLabel}</td>
         <td style="text-align:left;">${statusHtml}</td>
       </tr>`;
