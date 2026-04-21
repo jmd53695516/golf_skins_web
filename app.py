@@ -264,10 +264,16 @@ def nassau_scores(
         if not hrs:
             return None
 
-        # Each match: start_idx (into hrs), running wins, prev_diff for auto detection
-        matches: list[dict] = [
-            {"start_idx": 0, "t1w": 0, "t2w": 0, "prev_diff": 0, "is_auto": False}
-        ]
+        # Each match tracks next-press-level per direction: a press opens for
+        # the trailing team only when the deficit reaches a *new* multiple of
+        # `threshold` that hasn't been pressed at before. Starts at `threshold`;
+        # each time a press fires, that side's next level bumps by `threshold`.
+        def new_match(start_idx: int, is_auto: bool) -> dict:
+            return {
+                "start_idx": start_idx, "t1w": 0, "t2w": 0, "is_auto": is_auto,
+                "t1_next_press": threshold, "t2_next_press": threshold,
+            }
+        matches: list[dict] = [new_match(0, False)]
         hole_statuses: list[dict] = []
 
         for idx, hole in enumerate(hrs):
@@ -280,16 +286,15 @@ def nassau_scores(
                 elif hole["result"] == 2:
                     match["t2w"] += 1
                 diff = match["t1w"] - match["t2w"]
-                # Trigger auto when diff just reaches ±threshold (was ±threshold-1) and holes remain
-                if (threshold is not None
-                        and abs(diff) == threshold
-                        and abs(match["prev_diff"]) == threshold - 1
-                        and idx + 1 < len(hrs)):
-                    new_presses.append({
-                        "start_idx": idx + 1,
-                        "t1w": 0, "t2w": 0, "prev_diff": 0, "is_auto": True,
-                    })
-                match["prev_diff"] = diff
+                # Open a press only when the trailing team reaches a new deficit
+                # level not yet pressed at for this match (and holes remain).
+                if threshold is not None and idx + 1 < len(hrs):
+                    if diff <= -match["t1_next_press"]:
+                        new_presses.append(new_match(idx + 1, True))
+                        match["t1_next_press"] += threshold
+                    elif diff >= match["t2_next_press"]:
+                        new_presses.append(new_match(idx + 1, True))
+                        match["t2_next_press"] += threshold
 
             auto_opens = len(new_presses) > 0
             matches.extend(new_presses)
