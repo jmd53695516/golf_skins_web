@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Golf Game Scorer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,6 +34,7 @@
       --azalea:      #c8324b;
       --azalea-lt:   #d9556b;
       --azalea-bg:   #fdecef;
+      --azalea-ink:  #9a1b32;   /* readable red for error text on the tint */
 
       /* Neutrals */
       --magnolia:    #ffffff;   /* card surface */
@@ -71,6 +72,21 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
+
+    /* ---- Keyboard focus & placeholders (a11y) ---- */
+    .btn:focus-visible,
+    .game-btn:focus-visible,
+    .btn-link:focus-visible,
+    .pcard-remove:focus-visible,
+    .course-setup > summary:focus-visible {
+      outline: 2px solid var(--augusta);
+      outline-offset: 2px;
+    }
+    .toggle-label input:focus-visible ~ .toggle-slider {
+      outline: 2px solid var(--augusta);
+      outline-offset: 2px;
+    }
+    ::placeholder { color: var(--ink-dim); opacity: 1; }
 
     /* ---- Header ---- */
     header {
@@ -206,27 +222,6 @@
       margin-top: 8px;
       line-height: 1.5;
     }
-    .picker-divider {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin: 24px 22px 14px;
-    }
-    .picker-divider::before,
-    .picker-divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-    .picker-divider span {
-      font-family: var(--font);
-      font-size: .68rem;
-      color: var(--ink-dim);
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      font-weight: 600;
-    }
     .game-grid { padding: 0 16px 36px; }
 
     .game-btn {
@@ -325,7 +320,8 @@
     .btn-sm {
       display: inline-block;
       width: auto;
-      padding: 8px 16px;
+      min-height: 40px;
+      padding: 9px 16px;
       font-size: .82rem;
     }
     .btn-danger {
@@ -354,6 +350,20 @@
       transition: color .2s ease;
     }
     .btn-link:hover { color: var(--augusta); }
+
+    /* Sticky Calculate bar — keeps the primary action in thumb reach on a long review screen */
+    .calc-bar {
+      position: sticky;
+      bottom: 0;
+      margin: 18px -24px -24px;
+      padding: 14px 24px;
+      padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+      background: var(--magnolia);
+      border-top: 1px solid var(--border);
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      box-shadow: 0 -6px 20px rgba(20,24,28,.06);
+      z-index: 5;
+    }
 
     /* ---- Upload zone ---- */
     #upload-zone {
@@ -422,7 +432,7 @@
       flex-direction: column;
       align-items: center;
       gap: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.3), var(--shadow-gold);
+      box-shadow: 0 20px 60px rgba(20,24,28,.28), var(--shadow-gold);
     }
     .spinner {
       width: 44px; height: 44px;
@@ -445,7 +455,7 @@
       border: 1px solid rgba(200,50,75,.25);
       border-radius: var(--radius);
       padding: 12px 16px;
-      color: #9a1b32;
+      color: var(--azalea-ink);
       font-size: .9rem;
       margin-bottom: 14px;
       display: none;
@@ -518,6 +528,46 @@
       transition: transform .2s ease;
     }
     .course-setup[open] > summary::after { transform: rotate(180deg); }
+
+    /* Progressive disclosure for the dense per-hole grids. The headline result —
+       winner banner, Settle Up, and the summary standings — is the default;
+       the full hole-by-hole scorecard is one tap away, not a wall of numbers up front. */
+    .reveal-table > summary {
+      list-style: none;
+      cursor: pointer;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-family: var(--font);
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -.01em;
+      color: var(--ink);
+    }
+    .reveal-table > summary::-webkit-details-marker { display: none; }
+    .reveal-table > summary .reveal-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--augusta-dk);
+      white-space: nowrap;
+    }
+    .reveal-table > summary .reveal-hint::after {
+      content: '\25BE';
+      font-size: .8rem;
+      transition: transform .2s ease;
+    }
+    .reveal-table[open] > summary .reveal-hint::after { transform: rotate(180deg); }
+    .reveal-table > summary:focus-visible { outline: 2px solid var(--augusta); outline-offset: 3px; border-radius: 6px; }
+    .reveal-table[open] > summary { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-lt); }
+    .reveal-table .hole-note { font-size: .8rem; color: var(--ink-dim); margin: 0 0 12px; line-height: 1.5; }
+    .reveal-hint .hint-hide { display: none; }
+    .reveal-table[open] .reveal-hint .hint-show { display: none; }
+    .reveal-table[open] .reveal-hint .hint-hide { display: inline; }
     .course-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
@@ -539,12 +589,12 @@
     .course-cell .mini span { font-size: .58rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-mid); }
     .course-cell input {
       width: 100%;
-      height: 34px;
+      height: 44px;
       text-align: center;
-      font-size: .92rem;
+      font-size: .95rem;
       font-family: var(--font);
       border: 1px solid var(--border);
-      border-radius: 5px;
+      border-radius: 6px;
       background: #fff;
       color: var(--ink);
     }
@@ -623,6 +673,19 @@
     }
     .pcard-remove:hover { border-color: var(--azalea); background: var(--azalea-bg); }
 
+    /* Selected-game label under the Step-2 heading — mid-flow "which game am I in". */
+    .review-game { font-size: .95rem; font-weight: 700; color: var(--augusta); margin: -6px 0 14px; }
+    .review-game:empty { display: none; }
+
+    /* Undoable player removal — the card collapses to an Undo strip, scores preserved. */
+    .player-card.row-removed { padding: 0; }
+    .player-card.row-removed > *:not(.removed-strip) { display: none; }
+    .removed-strip {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 14px 16px; font-size: .92rem; color: var(--ink-mid);
+    }
+    .removed-strip .undo-btn { font-size: .92rem; }
+
     .score-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 8px; }
     .hole-cell { display: flex; flex-direction: column; align-items: center; gap: 3px; }
     .hole-cell .hole-no { font-size: .66rem; font-weight: 700; color: var(--ink-mid); }
@@ -641,6 +704,19 @@
     }
     .hole-cell input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 6px rgba(10,125,84,.2); }
 
+    /* Invalid field — flagged by the full-pass validation until the banker fixes it.
+       Higher specificity than the :focus rules above so a bad cell stays red even while focused. */
+    .hole-cell input.input-invalid,
+    .hole-cell input.input-invalid:focus,
+    .course-cell input.input-invalid,
+    .course-cell input.input-invalid:focus,
+    .pcard-hcp input.input-invalid,
+    .pcard-hcp input.input-invalid:focus {
+      border-color: var(--azalea);
+      box-shadow: 0 0 0 3px rgba(200,50,75,.18);
+      background: var(--azalea-bg);
+    }
+
     /* ---- Results ---- */
     .results-table th { font-size: .68rem; }
     .results-table td { font-size: .8rem; }
@@ -650,6 +726,40 @@
     td.gross-win { background: var(--augusta-bg); font-weight: 700; color: var(--augusta-dk); }
     td.net-win   { background: var(--slate-bg); font-weight: 700; color: var(--slate-ink); }
     td.both-win  { background: linear-gradient(135deg, var(--augusta-bg) 50%, var(--slate-bg) 50%); font-weight: 700; }
+
+    /* Result-table cell roles — extracted from render-function inline styles so the
+       Step-3 views run on the design system (and stay themeable) instead of pasted CSS. */
+    .cell-l        { text-align: left; }
+    .cell-detail   { text-align: left; font-size: .78rem; }
+    .cell-strong   { font-weight: 700; }
+    .cell-run      { font-size: .75rem; color: var(--ink-dim); }
+    .cell-sub      { font-size: .75rem; font-weight: 400; }        /* the (±diff) after a gross score */
+    .cell-vspar    { font-weight: 400; font-size: .8rem; color: inherit; }
+    .muted         { color: var(--ink-dim); }
+    .is-best       { font-weight: 700; }
+    /* Total row: tint the row, bold the cells — but let win-colored cells keep their own fill. */
+    .results-table tr.total-row    { background: var(--linen); }
+    .results-table tr.total-row td { font-weight: 700; }
+
+    /* Nassau — bets list */
+    .bet-seg        { margin-bottom: 18px; }
+    .bet-seg-label  { font-size: .72rem; font-weight: 700; color: var(--ink-mid);
+                      text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+    .bet-card       { border: 1px solid var(--border-lt); border-radius: var(--radius);
+                      padding: 12px 16px; margin-bottom: 8px; background: var(--linen); }
+    .bet-card.is-press { background: var(--augusta-bg); }
+    .bet-row        { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .bet-label      { font-size: .82rem; font-weight: 600; color: var(--ink); }
+    .bet-winner     { font-weight: 700; color: var(--augusta); }
+
+    /* Nassau — hole-table result + running status chips */
+    .res-t1     { color: var(--augusta); font-weight: 700; }
+    .res-t2     { color: var(--azalea); font-weight: 700; }
+    .status-chip { font-size: .72rem; white-space: nowrap; }
+    .press-flag { font-size: .7rem; color: var(--gold-dk); font-weight: 700; }
+
+    /* Small explanatory note inside a summary card */
+    .card-note  { font-size: .8rem; color: var(--ink-dim); line-height: 1.5; margin-bottom: 10px; }
 
     .winner-badge {
       display: inline-block;
@@ -699,6 +809,43 @@
     .hole-num { color: var(--ink-dim); font-size: .78rem; }
 
     /* Winner banner */
+    #skins-winner:not(:empty),
+    #quota-winner:not(:empty),
+    #nassau-winner:not(:empty),
+    #vegas-winner:not(:empty),
+    #bb-winner:not(:empty) { display: block; margin: 16px; }
+
+    /* Settle Up */
+    .settle-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .settle-controls label { font-size: .95rem; font-weight: 600; color: var(--ink); }
+    .stake-field {
+      display: flex; align-items: center; gap: 4px;
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 0 12px; background: #fff; height: 44px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .stake-field:focus-within { border-color: var(--augusta); box-shadow: 0 0 6px rgba(10,125,84,.2); }
+    .stake-prefix { color: var(--ink-dim); font-weight: 600; }
+    .stake-field input {
+      border: none; outline: none; width: 78px; height: 100%;
+      font-size: 1rem; font-family: var(--font); font-variant-numeric: tabular-nums;
+      background: transparent; color: var(--ink); text-align: right;
+    }
+    .settle-note { font-size: .78rem; color: var(--ink-dim); margin-top: 8px; }
+    .settlement { margin-top: 6px; }
+    .settlement-empty { font-size: .9rem; color: var(--ink-dim); }
+    .settle-net {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 11px 0; border-bottom: 1px solid var(--border-lt); font-size: .95rem;
+    }
+    .settle-net:last-child { border-bottom: none; }
+    .settle-net .amt-pos  { color: var(--augusta-dk); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .settle-net .amt-neg  { color: var(--azalea-ink);  font-weight: 700; font-variant-numeric: tabular-nums; }
+    .settle-net .amt-zero { color: var(--ink-dim); font-weight: 600; }
+    .owe-lines { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+    .owe-line { display: flex; align-items: center; gap: 8px; padding: 8px 0; font-size: .95rem; }
+    .owe-line .owe-arrow { color: var(--ink-dim); }
+    .owe-line .owe-amt { margin-left: auto; font-weight: 700; color: var(--augusta-dk); font-variant-numeric: tabular-nums; }
     .win-banner {
       position: relative;
       overflow: hidden;
@@ -762,12 +909,13 @@
       color: var(--ink-mid);
     }
     .nassau-settings input[type="number"] {
-      width: 64px;
+      width: 68px;
+      height: 40px;
       padding: 6px 8px;
       border: 1px solid var(--border);
-      border-radius: 5px;
+      border-radius: 6px;
       text-align: center;
-      font-size: .9rem;
+      font-size: .95rem;
       font-family: var(--font);
       background: #fff;
       color: var(--ink);
@@ -809,7 +957,7 @@
       background: #fff;
       border-radius: 50%;
       transition: transform .25s ease;
-      box-shadow: 0 1px 3px rgba(0,0,0,.15);
+      box-shadow: 0 1px 3px rgba(20,24,28,.15);
     }
     .toggle-label input:checked ~ .toggle-slider {
       background: var(--augusta);
@@ -829,6 +977,10 @@
     .mt-16  { margin-top: 16px; }
     .gap-10 { gap: 10px; }
     .flex   { display: flex; }
+
+    /* Balanced headings, tidy prose */
+    h1, h2, .game-name, .win-name, .win-tie { text-wrap: balance; }
+    p, .game-desc, .review-intro { text-wrap: pretty; }
 
     /* ---- The Ruling: results morph in via a View Transition ---- */
     @media (prefers-reduced-motion: no-preference) {
@@ -897,7 +1049,6 @@
     <h2>Choose Your Game</h2>
     <p>Select a format to score your round</p>
   </div>
-  <div class="picker-divider"><span>games</span></div>
   <div class="game-grid">
     <button class="game-btn" onclick="selectGame('skins')">
       <div class="game-icon-wrap">&#x1F4B0;</div>
@@ -953,7 +1104,7 @@
   <div class="card">
     <h2>Upload Scorecard</h2>
 
-    <div id="error-1" class="error-msg"></div>
+    <div id="error-1" class="error-msg" role="alert" aria-live="assertive"></div>
 
     <div id="upload-zone" onclick="document.getElementById('file-input').click()">
       <div class="upload-circle">&#x1F4F7;</div>
@@ -979,6 +1130,7 @@
 <div id="step-2" class="hidden">
   <div class="card">
     <h2>Review Extracted Data</h2>
+    <p id="review-game" class="review-game"></p>
     <p class="review-intro">
       Check the scores the AI read from your photo &mdash; every box is labeled with its hole number. Tap any value to fix it.
     </p>
@@ -991,7 +1143,7 @@
       <input type="file" id="extra-scorecard-input" accept="image/*" style="display:none" onchange="mergeScorecard(this)" />
     </div>
 
-    <div id="error-2" class="error-msg"></div>
+    <div id="error-2" class="error-msg" role="alert" aria-live="assertive"></div>
 
     <div id="nassau-settings" class="nassau-settings">
       <div class="nassau-setting-row">
@@ -1007,9 +1159,12 @@
       </div>
     </div>
 
-    <button class="btn btn-gold mt-16" id="calculate-btn" onclick="runCalculation()">Calculate</button>
-    <button class="btn btn-secondary mt-10" onclick="goStep(1)">&larr; Back to Upload</button>
+    <button class="btn btn-secondary mt-16" onclick="goStep(1)">&larr; Back to Upload</button>
     <button class="btn-link" onclick="goStep(0)">Change game</button>
+
+    <div class="calc-bar">
+      <button class="btn btn-gold" id="calculate-btn" onclick="runCalculation()">Calculate</button>
+    </div>
   </div>
 </div>
 
@@ -1020,15 +1175,33 @@
 
   <!-- Skins results -->
   <div id="skins-results">
+    <div id="skins-winner"></div>
     <div class="card">
-      <h2>Scorecard</h2>
-      <div class="table-outer">
-        <table id="results-table" class="results-table"></table>
+      <h2>Settle Up</h2>
+      <div class="settle-controls">
+        <label for="skins-stake">Value per skin</label>
+        <div class="stake-field">
+          <span class="stake-prefix">$</span>
+          <input type="number" id="skins-stake" min="0" step="1" inputmode="decimal" placeholder="0" oninput="updateSkinsSettlement()" aria-label="Dollar value per skin" />
+        </div>
       </div>
+      <p class="settle-note">Each skin is worth this much from every other player.</p>
+      <div id="skins-settlement" class="settlement"></div>
+    </div>
+    <div class="card">
+      <details class="reveal-table">
+        <summary>
+          <span class="reveal-title">Scorecard</span>
+          <span class="reveal-hint"><span class="hint-show">Show</span><span class="hint-hide">Hide</span></span>
+        </summary>
+        <div class="table-outer">
+          <table id="results-table" class="results-table"></table>
+        </div>
+      </details>
     </div>
     <div class="card">
       <h2>Gross Skins</h2>
-      <div id="error-3" class="error-msg"></div>
+      <div id="error-3" class="error-msg" role="alert" aria-live="assertive"></div>
       <ul class="hole-winner-list" id="gross-list"></ul>
     </div>
     <div class="card">
@@ -1043,72 +1216,136 @@
 
   <!-- Quota results -->
   <div id="quota-results" class="hidden">
+    <div id="quota-winner"></div>
+    <div class="card">
+      <h2>Settle Up</h2>
+      <div class="settle-controls">
+        <label for="quota-stake">Ante per player</label>
+        <div class="stake-field">
+          <span class="stake-prefix">$</span>
+          <input type="number" id="quota-stake" min="0" step="1" inputmode="decimal" placeholder="0" oninput="updateQuotaSettlement()" aria-label="Dollar ante per player" />
+        </div>
+      </div>
+      <p class="settle-note">Everyone antes this into the pot; the player who beats their quota by the most takes it. Ties split the pot.</p>
+      <div id="quota-settlement" class="settlement"></div>
+    </div>
     <div class="card">
       <h2>Quota &mdash; Final Standings</h2>
-      <p style="font-size:.8rem;color:var(--ink-dim);margin-bottom:10px;line-height:1.5;">
+      <p class="card-note">
         Quota = 36 &minus; handicap. Eagle=6pts, Birdie=4pts, Par=2pts, Bogey=1pt, Double+=0pts.
       </p>
       <table class="tally-table" id="quota-standings"></table>
     </div>
     <div class="card">
-      <h2>Hole by Hole</h2>
-      <div class="table-outer">
-        <table id="quota-table" class="results-table"></table>
-      </div>
+      <details class="reveal-table">
+        <summary>
+          <span class="reveal-title">Hole by hole</span>
+          <span class="reveal-hint"><span class="hint-show">Show</span><span class="hint-hide">Hide</span></span>
+        </summary>
+        <div class="table-outer">
+          <table id="quota-table" class="results-table"></table>
+        </div>
+      </details>
     </div>
   </div>
 
   <!-- Vegas results -->
   <div id="vegas-results" class="hidden">
+    <div id="vegas-winner"></div>
     <div class="card">
-      <h2>Winner</h2>
-      <div id="vegas-winner"></div>
+      <h2>Settle Up</h2>
+      <div class="settle-controls">
+        <label for="vegas-stake">Value per point</label>
+        <div class="stake-field">
+          <span class="stake-prefix">$</span>
+          <input type="number" id="vegas-stake" min="0" step="1" inputmode="decimal" placeholder="0" oninput="updateVegasSettlement()" aria-label="Dollar value per point" />
+        </div>
+      </div>
+      <p class="settle-note">The losing team pays this for every point of the final differential, split between its two players.</p>
+      <div id="vegas-settlement" class="settlement"></div>
     </div>
     <div class="card">
-      <h2>Vegas &mdash; Hole by Hole</h2>
-      <p style="font-size:.8rem;color:var(--ink-dim);margin-bottom:10px;line-height:1.5;">
-        Net scores capped at par+2. Lower net goes first to form the team number. A birdie by either player flips the <em>opponent's</em> number. Points = difference between team numbers each hole.
-      </p>
-      <div class="table-outer">
-        <table id="vegas-table" class="results-table"></table>
-      </div>
+      <details class="reveal-table">
+        <summary>
+          <span class="reveal-title">Hole by hole</span>
+          <span class="reveal-hint"><span class="hint-show">Show</span><span class="hint-hide">Hide</span></span>
+        </summary>
+        <p class="hole-note">
+          Net scores capped at par+2. Lower net goes first to form the team number. A birdie by either player flips the <em>opponent's</em> number. Points = difference between team numbers each hole.
+        </p>
+        <div class="table-outer">
+          <table id="vegas-table" class="results-table"></table>
+        </div>
+      </details>
     </div>
   </div>
 
   <!-- Better Ball results -->
   <div id="bb-results" class="hidden">
+    <div id="bb-winner"></div>
     <div class="card">
-      <h2>Winner</h2>
-      <div id="bb-winner"></div>
+      <h2>Settle Up</h2>
+      <div class="settle-controls">
+        <label for="bb-stake">Team bet</label>
+        <div class="stake-field">
+          <span class="stake-prefix">$</span>
+          <input type="number" id="bb-stake" min="0" step="1" inputmode="decimal" placeholder="0" oninput="updateBetterBallSettlement()" aria-label="Dollar team bet" />
+        </div>
+      </div>
+      <p class="settle-note">The winning team collects this from each other team, split among its players.</p>
+      <div id="bb-settlement" class="settlement"></div>
     </div>
     <div class="card">
-      <h2>2 Net Better Ball &mdash; Team Scores</h2>
-      <p style="font-size:.8rem;color:var(--ink-dim);margin-bottom:10px;line-height:1.5;">
-        Score shown is the sum of each team's 2 best net scores per hole. Net scores of the 2 contributing players shown below.
-      </p>
-      <div class="table-outer">
-        <table id="bb-table" class="results-table"></table>
-      </div>
+      <details class="reveal-table">
+        <summary>
+          <span class="reveal-title">Team scores, hole by hole</span>
+          <span class="reveal-hint"><span class="hint-show">Show</span><span class="hint-hide">Hide</span></span>
+        </summary>
+        <p class="hole-note">
+          Score shown is the sum of each team's 2 best net scores per hole. Net scores of the 2 contributing players shown below.
+        </p>
+        <div class="table-outer">
+          <table id="bb-table" class="results-table"></table>
+        </div>
+      </details>
     </div>
   </div>
 
   <!-- Nassau results -->
   <div id="nassau-results" class="hidden">
+    <div id="nassau-winner"></div>
+    <div class="card">
+      <h2>Settle Up</h2>
+      <div class="settle-controls">
+        <label for="nassau-stake">Value per bet</label>
+        <div class="stake-field">
+          <span class="stake-prefix">$</span>
+          <input type="number" id="nassau-stake" min="0" step="1" inputmode="decimal" placeholder="0" oninput="updateNassauSettlement()" aria-label="Dollar value per bet" />
+        </div>
+      </div>
+      <p class="settle-note">Each bet &mdash; front, back, total, and every press &mdash; is worth this to the team that wins it, split between its two players.</p>
+      <div id="nassau-settlement" class="settlement"></div>
+    </div>
     <div class="card">
       <h2>Nassau &mdash; Bets</h2>
-      <p style="font-size:.8rem;color:var(--ink-dim);margin-bottom:10px;line-height:1.5;">
+      <p class="card-note">
         3 separate bets: front 9, back 9, and total 18. Each hole won by the team with the lower best net score.
       </p>
       <div id="nassau-bets"></div>
     </div>
     <div class="card">
-      <h2>Nassau &mdash; Hole by Hole</h2>
-      <p style="font-size:.8rem;color:var(--ink-dim);margin-bottom:10px;line-height:1.5;">
-        Best net score from each team per hole. Lower best net wins the hole.
-      </p>
-      <div class="table-outer">
-        <table id="nassau-table" class="results-table"></table>
-      </div>
+      <details class="reveal-table">
+        <summary>
+          <span class="reveal-title">Hole by hole</span>
+          <span class="reveal-hint"><span class="hint-show">Show</span><span class="hint-hide">Hide</span></span>
+        </summary>
+        <p class="hole-note">
+          Best net score from each team per hole. Lower best net wins the hole.
+        </p>
+        <div class="table-outer">
+          <table id="nassau-table" class="results-table"></table>
+        </div>
+      </details>
     </div>
   </div>
 
@@ -1130,6 +1367,11 @@
     nextPlayerIdx:  0,
     nextTeamIdx:    0,
     selectedGame:   null,
+    lastSkinsTally: null,
+    lastQuota:      null,
+    lastVegas:      null,
+    lastNassau:     null,
+    lastBetterBall: null,
   };
 
   /* -- Game registry: display name + calculation handler -- */
@@ -1236,6 +1478,8 @@
     const game = state.selectedGame;
     const btn  = document.getElementById("calculate-btn");
     if (btn) btn.textContent = game && GAMES[game] ? `Calculate ${GAMES[game].label}` : "Calculate";
+    const rg = document.getElementById("review-game");
+    if (rg) rg.textContent = game && GAMES[game] ? `Scoring ${GAMES[game].label}` : "";
     document.getElementById("nassau-settings").classList.toggle("show", game === "nassau");
   }
 
@@ -1282,10 +1526,17 @@
     if (file) { fileInput.files = e.dataTransfer.files; fileInput.dispatchEvent(new Event("change")); }
   });
 
-  function showError(id, msg) {
+  function showError(id, msg, opts) {
     const el = document.getElementById(id);
-    el.textContent = msg;
+    // Show first, then set text: the region is role="alert", and screen readers
+    // announce the mutation more reliably once the node is actually rendered.
     el.classList.add("show");
+    el.textContent = msg;
+    // Make sure the banker actually sees it, even on a long scrolled page.
+    // Callers that scroll to a specific bad field instead pass { scroll: false }.
+    if (!opts || opts.scroll !== false) {
+      el.scrollIntoView({ block: "center", behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    }
   }
   function clearError(id) {
     const el = document.getElementById(id);
@@ -1345,7 +1596,9 @@
         <label class='mini'><span>SI</span><input type='number' id='hcp-${i}' value='${r}' min='1' max='18' aria-label='Hole ${num} stroke index' /></label>
       </div>`;
     }
-    return `<details class='course-setup' open>
+    // Open by default only when par/SI still need attention; otherwise stay tucked away.
+    const needsInput = holes.some(h => h.par == null || h.par === "" || h.handicap_rating == null || h.handicap_rating === "");
+    return `<details class='course-setup'${needsInput ? " open" : ""}>
       <summary>Course setup &mdash; par &amp; stroke index</summary>
       <div class='course-grid'>${cells}</div>
     </details>`;
@@ -1410,7 +1663,107 @@
 
   /* All player lookups route through here, so the read logic stays layout-agnostic. */
   function playerRows() {
-    return document.querySelectorAll('#players-list [id^="player-row-"]');
+    // Rows pending an undoable removal carry data-removed and are left out of the calc.
+    return document.querySelectorAll('#players-list [id^="player-row-"]:not([data-removed])');
+  }
+
+  /* ---- Full-pass scorecard validation ----
+     One read of the whole card that collects EVERY bad field instead of bailing on
+     the first, so the banker fixes all of them in one go rather than tap-fix-tap-fix.
+     A single hole score can't sanely exceed this; guards the maxlength=3 "999" case. */
+  const SCORE_MAX = 20;
+
+  function clearInvalids() {
+    document.querySelectorAll(".input-invalid").forEach(el => {
+      el.classList.remove("input-invalid");
+      el.removeAttribute("aria-invalid");
+    });
+  }
+
+  // Mark one field as bad and record a short human label for the summary banner.
+  function flagField(problems, el, label) {
+    if (el) { el.classList.add("input-invalid"); el.setAttribute("aria-invalid", "true"); }
+    problems.push({ el, label });
+  }
+
+  // Reads holes + players in a single pass. Returns { holes, players, problems }.
+  // players carry a `ti` (team index) for team games; the server ignores the extra key.
+  function readScorecard() {
+    clearInvalids();
+    const n = state.numHoles;
+    const problems = [];
+
+    const holes = [];
+    for (let i = 0; i < n; i++) {
+      const parEl = document.getElementById(`par-${i}`);
+      const hcpEl = document.getElementById(`hcp-${i}`);
+      const par = parseInt(parEl?.value);
+      const hcp = parseInt(hcpEl?.value);
+      if (isNaN(par)) flagField(problems, parEl, `Hole ${i + 1} par`);
+      if (isNaN(hcp)) flagField(problems, hcpEl, `Hole ${i + 1} stroke index`);
+      holes.push({ number: i + 1, par, handicap_rating: hcp });
+    }
+
+    const players = [];
+    for (const row of playerRows()) {
+      const pi     = row.id.split("-")[2];
+      const nameEl = document.getElementById(`pname-${pi}`);
+      const hcpEl  = document.getElementById(`phcp-${pi}`);
+      const name   = nameEl?.value.trim();
+      const ti     = parseInt(row.getAttribute("data-team") ?? 0);
+      if (!name) continue;                       // unnamed rows are skipped, as before
+      const handicap = parseInt(hcpEl?.value);
+      if (isNaN(handicap) || handicap < 0) flagField(problems, hcpEl, `${name}: handicap`);
+
+      const scores = [];
+      for (let i = 0; i < n; i++) {
+        const el  = document.getElementById(`score-${pi}-${i}`);
+        const raw = (el?.value ?? "").trim();
+        if (raw === "" || raw.toLowerCase() === "x") { scores.push(null); continue; }
+        const s = parseInt(raw);
+        if (!/^\d+$/.test(raw) || isNaN(s) || s < 1 || s > SCORE_MAX) {
+          flagField(problems, el, `${name} hole ${i + 1}`);
+          scores.push(null);
+        } else {
+          scores.push(s);
+        }
+      }
+      players.push({ name, handicap, scores, ti });
+    }
+
+    return { holes, players, problems };
+  }
+
+  // Surface a full-pass result. Returns true if clean; otherwise shows one summary
+  // banner listing the bad fields, highlights them all, and scrolls to the first.
+  function surfaceProblems(problems) {
+    if (problems.length === 0) return true;
+    const count = problems.length;
+    const head  = count === 1 ? "1 entry needs fixing:" : `${count} entries need fixing:`;
+    const shown = problems.slice(0, 6).map(p => p.label);
+    const more  = count > 6 ? ` …and ${count - 6} more` : "";
+    showError("error-2", `${head} ${shown.join(" · ")}${more}.`, { scroll: false });
+    const first = problems.find(p => p.el)?.el;
+    if (first) {
+      first.scrollIntoView({ block: "center", behavior: prefersReducedMotion() ? "auto" : "smooth" });
+      try { first.focus({ preventScroll: true }); } catch (_) { first.focus(); }
+    }
+    return false;
+  }
+
+  // Group already-validated players into teams by their team index (for Better Ball).
+  function teamsFromPlayers(players) {
+    const map = {};
+    for (const p of players) {
+      const ti = p.ti ?? 0;
+      if (!map[ti]) {
+        const nameEl = document.getElementById(`team-name-${ti}`);
+        const nm = nameEl && nameEl.value.trim() ? nameEl.value.trim() : `Team ${ti + 1}`;
+        map[ti] = { name: nm, players: [] };
+      }
+      map[ti].players.push({ name: p.name, handicap: p.handicap, scores: p.scores });
+    }
+    return Object.values(map).filter(t => t.players.length > 0);
   }
 
   function addPlayerRow() {
@@ -1420,9 +1773,42 @@
     list.insertAdjacentHTML("beforeend", playerRowHtml(pi, "", "", [], state.numHoles, lastTi));
   }
 
+  // Removing a player is undoable: the card collapses to an "Undo" strip and its
+  // scores stay in the DOM (excluded from the calc) until the window elapses.
+  const pendingRemovals = {};
   function removePlayerRow(pi) {
     const row = document.getElementById(`player-row-${pi}`);
+    if (!row || row.hasAttribute("data-removed")) return;
+    const name = (document.getElementById(`pname-${pi}`)?.value || "").trim();
+    row.setAttribute("data-removed", "1");
+    row.classList.add("row-removed");
+
+    const strip = document.createElement("div");
+    strip.className = "removed-strip";
+    strip.innerHTML = `<span>Removed <strong>${escHtml(name || "player")}</strong></span>`;
+    const undo = document.createElement("button");
+    undo.type = "button";
+    undo.className = "btn-link undo-btn";
+    undo.textContent = "Undo";
+    undo.addEventListener("click", () => undoRemovePlayer(pi));
+    strip.appendChild(undo);
+    row.appendChild(strip);
+
+    pendingRemovals[pi] = setTimeout(() => finalizeRemovePlayer(pi), 8000);
+  }
+  function undoRemovePlayer(pi) {
+    const row = document.getElementById(`player-row-${pi}`);
+    if (!row) return;
+    clearTimeout(pendingRemovals[pi]); delete pendingRemovals[pi];
+    row.removeAttribute("data-removed");
+    row.classList.remove("row-removed");
+    const strip = row.querySelector(".removed-strip");
+    if (strip) strip.remove();
+  }
+  function finalizeRemovePlayer(pi) {
+    const row = document.getElementById(`player-row-${pi}`);
     if (row) row.remove();
+    delete pendingRemovals[pi];
   }
 
   function escHtml(str) {
@@ -1432,47 +1818,9 @@
   /* -- Step 2 -> Quota calculate -- */
   async function calculateQuota() {
     clearError("error-2");
-    const n = state.numHoles;
 
-    const holes = [];
-    for (let i = 0; i < n; i++) {
-      const par = parseInt(document.getElementById(`par-${i}`)?.value);
-      const hcp = parseInt(document.getElementById(`hcp-${i}`)?.value);
-      if (isNaN(par) || isNaN(hcp)) {
-        showError("error-2", `Hole ${i + 1}: par and HCP rating are required.`);
-        return;
-      }
-      holes.push({ number: i + 1, par, handicap_rating: hcp });
-    }
-
-    const players = [];
-    const rows    = playerRows();
-    for (const row of rows) {
-      const pi       = row.id.split("-")[2];
-      const name     = document.getElementById(`pname-${pi}`)?.value.trim();
-      const handicap = parseInt(document.getElementById(`phcp-${pi}`)?.value);
-      if (!name) continue;
-      if (isNaN(handicap) || handicap < 0) {
-        showError("error-2", `Please enter a valid handicap for ${name}.`);
-        return;
-      }
-      const scores = [];
-      for (let i = 0; i < n; i++) {
-        const raw = (document.getElementById(`score-${pi}-${i}`)?.value ?? "").trim();
-        if (raw === "" || raw.toLowerCase() === "x") {
-          scores.push(null);
-          continue;
-        }
-        const s = parseInt(raw);
-        if (isNaN(s) || s < 1) {
-          showError("error-2", `Invalid score for ${name} on hole ${i + 1}. Enter a number or X.`);
-          return;
-        }
-        scores.push(s);
-      }
-      players.push({ name, handicap, scores });
-    }
-
+    const { holes, players, problems } = readScorecard();
+    if (!surfaceProblems(problems)) return;
     if (players.length < 2) {
       showError("error-2", "At least 2 players are required.");
       return;
@@ -1516,7 +1864,7 @@
       const vsQ    = r.vs_quota >= 0 ? `+${r.vs_quota}` : `${r.vs_quota}`;
       const winner = i === 0 ? "gross-win" : "";
       sHtml += `<tr>
-        <td style='text-align:left;${i===0?"font-weight:700;":""}'>${escHtml(r.name)}${i===0 ? " \u{1F3C6}" : ""}</td>
+        <td class='cell-l${i===0?" cell-strong":""}'>${escHtml(r.name)}${i===0 ? " \u{1F3C6}" : ""}</td>
         <td>${r.quota}</td>
         <td>${r.earned}</td>
         <td class='${winner}'>${vsQ}</td>
@@ -1524,6 +1872,22 @@
     });
     sHtml += "</tbody>";
     st.innerHTML = sHtml;
+
+    // The ruling: who beat their quota by the most?
+    const winnerEl = document.getElementById("quota-winner");
+    const results  = data.results || [];
+    const vs = v => (v >= 0 ? `+${v}` : `${v}`);
+    if (results.length) {
+      const top  = results[0];
+      const tied = results.filter(r => r.vs_quota === top.vs_quota);
+      if (tied.length === 1) {
+        winnerEl.innerHTML = `<div class='win-banner'><div class='win-name'>${escHtml(top.name)}</div>
+          <div class='win-detail'>${vs(top.vs_quota)} vs quota &mdash; ${top.earned} of ${top.quota} points</div></div>`;
+      } else {
+        winnerEl.innerHTML = `<div class='win-banner'><div class='win-tie'>Tie &mdash; ${tied.map(t => escHtml(t.name)).join(" &amp; ")}</div>
+          <div class='win-detail'>${vs(top.vs_quota)} vs quota</div></div>`;
+      }
+    }
 
     const qt      = document.getElementById("quota-table");
     const players = data.holes[0].players.map(p => p.name);
@@ -1535,7 +1899,7 @@
       html += `<tr><td>${hole.number}</td><td>${hole.par}</td>`;
       hole.players.forEach(p => {
         if (p.gross == null) {
-          html += `<td style='color:var(--ink-dim);'>
+          html += `<td class='muted'>
             <div class='score-gross'>X</div>
             <div class='score-net'>0pt \u2014 no score</div>
           </td>`;
@@ -1545,14 +1909,14 @@
         const label   = pointLabel[String(p.diff)] ?? "Double+";
         const cls     = p.diff <= -1 ? "net-win" : "";
         html += `<td class='${cls}'>
-          <div class='score-gross'>${p.gross} <span style='font-size:.75rem;font-weight:400;'>(${diffStr})</span></div>
+          <div class='score-gross'>${p.gross} <span class='cell-sub'>(${diffStr})</span></div>
           <div class='score-net'>${p.points}pt \u2014 ${label}</div>
         </td>`;
       });
       html += `</tr>`;
     });
 
-    html += `<tr style='font-weight:700;background:var(--linen);'><td colspan='2'>Total</td>`;
+    html += `<tr class='total-row'><td colspan='2'>Total</td>`;
     const resultsByName = {};
     data.results.forEach(r => { resultsByName[r.name] = r; });
     players.forEach(name => {
@@ -1561,52 +1925,18 @@
     });
     html += `</tr></tbody>`;
     qt.innerHTML = html;
+
+    // Money settlement — recompute against the current ante.
+    state.lastQuota = data.results;
+    updateQuotaSettlement();
   }
 
   /* -- Step 2 -> Vegas calculate -- */
   async function calculateVegas() {
     clearError("error-2");
-    const n = state.numHoles;
 
-    const holes = [];
-    for (let i = 0; i < n; i++) {
-      const par = parseInt(document.getElementById(`par-${i}`)?.value);
-      const hcp = parseInt(document.getElementById(`hcp-${i}`)?.value);
-      if (isNaN(par) || isNaN(hcp)) {
-        showError("error-2", `Hole ${i + 1}: par and HCP rating are required.`);
-        return;
-      }
-      holes.push({ number: i + 1, par, handicap_rating: hcp });
-    }
-
-    const players = [];
-    const rows    = playerRows();
-    for (const row of rows) {
-      const pi       = row.id.split("-")[2];
-      const name     = document.getElementById(`pname-${pi}`)?.value.trim();
-      const handicap = parseInt(document.getElementById(`phcp-${pi}`)?.value);
-      if (!name) continue;
-      if (isNaN(handicap) || handicap < 0) {
-        showError("error-2", `Please enter a valid handicap for ${name}.`);
-        return;
-      }
-      const scores = [];
-      for (let i = 0; i < n; i++) {
-        const raw = (document.getElementById(`score-${pi}-${i}`)?.value ?? "").trim();
-        if (raw === "" || raw.toLowerCase() === "x") {
-          scores.push(null);
-          continue;
-        }
-        const s = parseInt(raw);
-        if (isNaN(s) || s < 1) {
-          showError("error-2", `Invalid score for ${name} on hole ${i + 1}. Enter a number or X.`);
-          return;
-        }
-        scores.push(s);
-      }
-      players.push({ name, handicap, scores });
-    }
-
+    const { holes, players, problems } = readScorecard();
+    if (!surfaceProblems(problems)) return;
     if (players.length !== 4) {
       showError("error-2", `Vegas requires exactly 4 players \u2014 ${players.length} found.`);
       return;
@@ -1682,19 +2012,19 @@
 
       html += `<tr>
         <td>${hole.number}</td><td>${hole.par}</td>
-        <td style='text-align:left;font-size:.78rem;'>${playerCell(hole.t1_details)}</td>
+        <td class='cell-detail'>${playerCell(hole.t1_details)}</td>
         <td class='${t1won ? "gross-win" : ""}'><div class='vegas-number'>${hole.t1_number}</div>${t1Flip}</td>
         <td class='${t1won ? "gross-win" : ""}'><span class='vegas-pts ${t1won ? "earned" : ""}'>${hole.t1_pts}</span></td>
-        <td style='text-align:left;font-size:.78rem;'>${playerCell(hole.t2_details)}</td>
+        <td class='cell-detail'>${playerCell(hole.t2_details)}</td>
         <td class='${t2won ? "gross-win" : ""}'><div class='vegas-number'>${hole.t2_number}</div>${t2Flip}</td>
         <td class='${t2won ? "gross-win" : ""}'><span class='vegas-pts ${t2won ? "earned" : ""}'>${hole.t2_pts}</span></td>
-        <td style='font-size:.75rem;color:var(--ink-dim);'>${running}</td>
+        <td class='cell-run'>${running}</td>
       </tr>`;
     });
 
     const t1wins = data.t1_total > data.t2_total;
     const t2wins = data.t2_total > data.t1_total;
-    html += `<tr style='font-weight:700;background:var(--linen);'>
+    html += `<tr class='total-row'>
       <td colspan='2'>Total</td>
       <td></td>
       <td class='${t1wins ? "gross-win" : ""}'></td>
@@ -1702,9 +2032,13 @@
       <td></td>
       <td class='${t2wins ? "gross-win" : ""}'></td>
       <td class='${t2wins ? "gross-win" : ""}'>${data.t2_total}</td>
-      <td style='font-weight:700;'>Diff: ${data.differential}</td>
+      <td class='cell-strong'>Diff: ${data.differential}</td>
     </tr></tbody>`;
     vt.innerHTML = html;
+
+    // Money settlement — recompute against the current value per point.
+    state.lastVegas = { names: players.map(p => p.name), winner: data.winner, differential: data.differential };
+    updateVegasSettlement();
   }
 
   /* -- Step 2: merge additional scorecard -- */
@@ -1742,51 +2076,9 @@
   /* -- Step 2 -> calculate -- */
   async function calculateSkins() {
     clearError("error-2");
-    const n = state.numHoles;
 
-    const holes = [];
-    for (let i = 0; i < n; i++) {
-      const par = parseInt(document.getElementById(`par-${i}`)?.value);
-      const hcp = parseInt(document.getElementById(`hcp-${i}`)?.value);
-      if (isNaN(par) || isNaN(hcp)) {
-        showError("error-2", `Hole ${i+1}: par and HCP rating are required.`);
-        return;
-      }
-      holes.push({ number: i + 1, par, handicap_rating: hcp });
-    }
-
-    const players = [];
-    const rows    = playerRows();
-
-    for (const row of rows) {
-      const pi      = row.id.split("-")[2];
-      const name    = document.getElementById(`pname-${pi}`)?.value.trim();
-      const hcpRaw  = document.getElementById(`phcp-${pi}`)?.value;
-      const handicap = parseInt(hcpRaw);
-
-      if (!name) continue;
-      if (isNaN(handicap) || handicap < 0) {
-        showError("error-2", `Please enter a valid handicap index for ${name || "a player"}.`);
-        return;
-      }
-
-      const scores = [];
-      for (let i = 0; i < n; i++) {
-        const raw = (document.getElementById(`score-${pi}-${i}`)?.value ?? "").trim();
-        if (raw === "" || raw.toLowerCase() === "x") {
-          scores.push(null);
-          continue;
-        }
-        const s = parseInt(raw);
-        if (isNaN(s) || s < 1) {
-          showError("error-2", `Invalid score for ${name} on hole ${i+1}. Enter a number or X.`);
-          return;
-        }
-        scores.push(s);
-      }
-      players.push({ name, handicap, scores });
-    }
-
+    const { holes, players, problems } = readScorecard();
+    if (!surfaceProblems(problems)) return;
     if (players.length < 2) {
       showError("error-2", "At least 2 players with scores are required.");
       return;
@@ -1861,7 +2153,7 @@
                       <strong>${escHtml(h.gross_winner)}</strong></li>`;
       }
     });
-    gl.innerHTML = anyGross ? gHtml : "<li><span style='color:var(--ink-dim)'>No gross skin winners</span></li>";
+    gl.innerHTML = anyGross ? gHtml : "<li><span class='muted'>No gross skin winners</span></li>";
 
     const nl = document.getElementById("net-list");
     let anyNet = false;
@@ -1873,77 +2165,210 @@
                       <strong>${escHtml(h.net_winner)}</strong></li>`;
       }
     });
-    nl.innerHTML = anyNet ? nHtml : "<li><span style='color:var(--ink-dim)'>No net skin winners</span></li>";
+    nl.innerHTML = anyNet ? nHtml : "<li><span class='muted'>No net skin winners</span></li>";
 
     const tt = document.getElementById("tally-table");
     let tHtml = "<thead><tr><th>Player</th><th>Gross Skins</th><th>Net Skins</th></tr></thead><tbody>";
     Object.entries(data.tally)
       .sort((a, b) => (b[1].gross + b[1].net) - (a[1].gross + a[1].net))
       .forEach(([name, counts]) => {
-        tHtml += `<tr><td style='text-align:left'>${escHtml(name)}</td>
+        tHtml += `<tr><td class='cell-l'>${escHtml(name)}</td>
                       <td>${counts.gross}</td><td>${counts.net}</td></tr>`;
       });
     tHtml += "</tbody>";
     tt.innerHTML = tHtml;
+
+    // The ruling: who took the most skins?
+    const winnerEl = document.getElementById("skins-winner");
+    const standings = Object.entries(data.tally).map(([name, c]) => ({
+      name, gross: c.gross, net: c.net, total: c.gross + c.net,
+    }));
+    const maxTotal = standings.reduce((m, t) => Math.max(m, t.total), 0);
+    if (maxTotal <= 0) {
+      winnerEl.innerHTML = `<div class='win-banner'><div class='win-tie'>No skins won</div>
+        <div class='win-detail'>Every hole carried over &mdash; nothing to settle.</div></div>`;
+    } else {
+      const leaders = standings.filter(t => t.total === maxTotal);
+      if (leaders.length === 1) {
+        const w = leaders[0];
+        winnerEl.innerHTML = `<div class='win-banner'><div class='win-name'>${escHtml(w.name)}</div>
+          <div class='win-detail'>${w.total} skin${w.total === 1 ? "" : "s"} &mdash; ${w.gross} gross &middot; ${w.net} net</div></div>`;
+      } else {
+        winnerEl.innerHTML = `<div class='win-banner'><div class='win-tie'>Tie &mdash; ${leaders.map(l => escHtml(l.name)).join(" &amp; ")}</div>
+          <div class='win-detail'>${maxTotal} skin${maxTotal === 1 ? "" : "s"} each</div></div>`;
+      }
+    }
+
+    // Money settlement — recompute against the current stake value.
+    state.lastSkinsTally = data.tally;
+    updateSkinsSettlement();
+  }
+
+  /* -- Settlement helpers -- */
+  function money(n) {
+    const v = Math.round(n * 100) / 100;
+    return Number.isInteger(v) ? `$${v}` : `$${v.toFixed(2)}`;
+  }
+
+  // Greedy pairwise settle-up: match the biggest debtor to the biggest creditor.
+  function greedySettle(nets) {
+    const creditors = nets.filter(p => p.net >  0.005).map(p => ({ name: p.name, amt:  p.net })).sort((a, b) => b.amt - a.amt);
+    const debtors   = nets.filter(p => p.net < -0.005).map(p => ({ name: p.name, amt: -p.net })).sort((a, b) => b.amt - a.amt);
+    const lines = [];
+    let ci = 0, di = 0;
+    while (ci < creditors.length && di < debtors.length) {
+      const pay = Math.min(creditors[ci].amt, debtors[di].amt);
+      lines.push({ from: debtors[di].name, to: creditors[ci].name, amount: pay });
+      creditors[ci].amt -= pay;
+      debtors[di].amt   -= pay;
+      if (creditors[ci].amt < 0.005) ci++;
+      if (debtors[di].amt   < 0.005) di++;
+    }
+    return lines;
+  }
+
+  // Shared settlement renderer: per-person net lines + minimal owe-lines.
+  // nets: [{name, net}]. emptyMsg shows when nothing actually changes hands.
+  function renderSettlement(el, nets, emptyMsg) {
+    if (!el) return;
+    const active = nets.some(p => Math.abs(p.net) > 0.005);
+    if (!active) {
+      el.innerHTML = `<p class='settlement-empty'>${escHtml(emptyMsg)}</p>`;
+      return;
+    }
+    let html = "";
+    nets.slice().sort((a, b) => b.net - a.net).forEach(p => {
+      const cls  = p.net > 0.005 ? "amt-pos" : p.net < -0.005 ? "amt-neg" : "amt-zero";
+      const disp = p.net > 0.005 ? `collects ${money(p.net)}`
+                 : p.net < -0.005 ? `owes ${money(-p.net)}`
+                 : "even";
+      html += `<div class='settle-net'><span>${escHtml(p.name)}</span><span class='${cls}'>${disp}</span></div>`;
+    });
+
+    const lines = greedySettle(nets);
+    if (lines.length) {
+      html += "<div class='owe-lines'>";
+      lines.forEach(l => {
+        html += `<div class='owe-line'><strong>${escHtml(l.from)}</strong><span class='owe-arrow'>&rarr;</span><strong>${escHtml(l.to)}</strong><span class='owe-amt'>${money(l.amount)}</span></div>`;
+      });
+      html += "</div>";
+    }
+    el.innerHTML = html;
+  }
+
+  // Split a team-level net evenly across its players (team games settle per player).
+  function splitTeamNet(names, teamNet) {
+    const share = teamNet / names.length;
+    return names.map(n => ({ name: n, net: share }));
+  }
+
+  // Read + validate a stake input. Returns a positive number, or null.
+  function readStake(id) {
+    const v = parseFloat(document.getElementById(id).value);
+    return v > 0 ? v : null;
+  }
+
+  // Skins: each skin (gross + net) pays `stake` from every other player — zero-sum.
+  function updateSkinsSettlement() {
+    const el = document.getElementById("skins-settlement");
+    const tally = state.lastSkinsTally;
+    if (!el || !tally) return;
+    const stake = readStake("skins-stake");
+    const names = Object.keys(tally);
+    const P = names.length;
+    if (!stake || P < 2) return renderSettlement(el, [], "Enter a dollar value per skin to see who owes whom.");
+
+    const units = names.map(n => tally[n].gross + tally[n].net);
+    const total = units.reduce((a, b) => a + b, 0);
+    const nets  = names.map((n, i) => ({ name: n, net: stake * (P * units[i] - total) }));
+    renderSettlement(el, nets, "Everyone won the same — nothing changes hands.");
+  }
+
+  // Quota: everyone antes `stake`; the biggest winner over quota takes the pot (ties split).
+  function updateQuotaSettlement() {
+    const el = document.getElementById("quota-settlement");
+    const results = state.lastQuota;
+    if (!el || !results) return;
+    const stake = readStake("quota-stake");
+    const P = results.length;
+    if (!stake || P < 2) return renderSettlement(el, [], "Enter each player's ante to see who takes the pot.");
+
+    const pot  = stake * P;
+    const best = Math.max(...results.map(r => r.vs_quota));
+    const winners = results.filter(r => r.vs_quota === best).length;
+    const nets = results.map(r => ({
+      name: r.name,
+      net: r.vs_quota === best ? (pot / winners - stake) : -stake,
+    }));
+    renderSettlement(el, nets, "Everyone's even — nothing changes hands.");
+  }
+
+  // Vegas: losing team pays `stake` per point of the final differential, split per player.
+  function updateVegasSettlement() {
+    const el = document.getElementById("vegas-settlement");
+    const v  = state.lastVegas;
+    if (!el || !v) return;
+    const stake = readStake("vegas-stake");
+    if (!stake) return renderSettlement(el, [], "Enter a dollar value per point to see who owes whom.");
+
+    const pot = v.differential * stake;
+    const t1  = [v.names[0], v.names[1]], t2 = [v.names[2], v.names[3]];
+    let nets;
+    if (v.winner === 1)      nets = [...splitTeamNet(t1,  pot), ...splitTeamNet(t2, -pot)];
+    else if (v.winner === 2) nets = [...splitTeamNet(t1, -pot), ...splitTeamNet(t2,  pot)];
+    else                     nets = v.names.map(n => ({ name: n, net: 0 }));
+    renderSettlement(el, nets, "Tied on points — nothing changes hands.");
+  }
+
+  // Nassau: each bet won (front, back, total, and every press) is worth `stake` to the team.
+  function updateNassauSettlement() {
+    const el  = document.getElementById("nassau-settlement");
+    const nas = state.lastNassau;
+    if (!el || !nas) return;
+    const stake = readStake("nassau-stake");
+    if (!stake) return renderSettlement(el, [], "Enter a dollar value per bet to see who owes whom.");
+
+    const diff = nas.t1wins - nas.t2wins;
+    const pot  = Math.abs(diff) * stake;
+    const t1   = [nas.names[0], nas.names[1]], t2 = [nas.names[2], nas.names[3]];
+    let nets;
+    if (diff > 0)      nets = [...splitTeamNet(t1,  pot), ...splitTeamNet(t2, -pot)];
+    else if (diff < 0) nets = [...splitTeamNet(t1, -pot), ...splitTeamNet(t2,  pot)];
+    else               nets = nas.names.map(n => ({ name: n, net: 0 }));
+    renderSettlement(el, nets, "All square — nothing changes hands.");
+  }
+
+  // Better Ball: the single lowest team collects `stake` from each other team (tie = push).
+  function updateBetterBallSettlement() {
+    const el = document.getElementById("bb-settlement");
+    const bb = state.lastBetterBall;
+    if (!el || !bb) return;
+    const stake = readStake("bb-stake");
+    const N = bb.teams.length;
+    if (!stake || N < 2) return renderSettlement(el, [], "Enter the team bet to see who owes whom.");
+
+    const winnerCount = bb.team_totals.filter(t => t === bb.min_total).length;
+    if (winnerCount !== 1) {
+      const flat = [];
+      bb.teams.forEach(t => t.players.forEach(n => flat.push({ name: n, net: 0 })));
+      return renderSettlement(el, flat, "Tied for the win — the bet's a push, nothing changes hands.");
+    }
+    const nets = [];
+    bb.teams.forEach((t, i) => {
+      const teamNet = bb.team_totals[i] === bb.min_total ? stake * (N - 1) : -stake;
+      nets.push(...splitTeamNet(t.players, teamNet));
+    });
+    renderSettlement(el, nets, "");
   }
 
   /* -- Step 2: collect teams from review table (for Better Ball) -- */
-  function collectTeams() {
-    const n      = state.numHoles;
-    const teamsMap = {};
-
-    for (let ti = 0; ti < state.nextTeamIdx; ti++) {
-      const nameEl = document.getElementById(`team-name-${ti}`);
-      teamsMap[ti] = { name: nameEl ? nameEl.value.trim() || `Team ${ti + 1}` : `Team ${ti + 1}`, players: [] };
-    }
-
-    const rows = playerRows();
-    for (const row of rows) {
-      const pi  = row.id.split("-")[2];
-      const ti  = parseInt(row.getAttribute("data-team") ?? 0);
-      const name     = document.getElementById(`pname-${pi}`)?.value.trim();
-      const handicap = parseInt(document.getElementById(`phcp-${pi}`)?.value);
-
-      if (!name) continue;
-      if (isNaN(handicap) || handicap < 0) return { error: `Please enter a valid handicap for ${name}.` };
-
-      const scores = [];
-      for (let i = 0; i < n; i++) {
-        const raw = (document.getElementById(`score-${pi}-${i}`)?.value ?? "").trim();
-        if (raw === "" || raw.toLowerCase() === "x") {
-          scores.push(null);
-          continue;
-        }
-        const s = parseInt(raw);
-        if (isNaN(s) || s < 1) return { error: `Invalid score for ${name} on hole ${i + 1}. Enter a number or X.` };
-        scores.push(s);
-      }
-      if (!teamsMap[ti]) teamsMap[ti] = { name: `Team ${ti + 1}`, players: [] };
-      teamsMap[ti].players.push({ name, handicap, scores });
-    }
-
-    const teams = Object.values(teamsMap).filter(t => t.players.length > 0);
-    return { teams };
-  }
-
   /* -- Step 2 -> Better Ball calculate -- */
   async function calculateBetterBall() {
     clearError("error-2");
-    const n = state.numHoles;
 
-    const holes = [];
-    for (let i = 0; i < n; i++) {
-      const par = parseInt(document.getElementById(`par-${i}`)?.value);
-      const hcp = parseInt(document.getElementById(`hcp-${i}`)?.value);
-      if (isNaN(par) || isNaN(hcp)) {
-        showError("error-2", `Hole ${i + 1}: par and HCP rating are required.`);
-        return;
-      }
-      holes.push({ number: i + 1, par, handicap_rating: hcp });
-    }
-
-    const { teams, error } = collectTeams();
-    if (error) { showError("error-2", error); return; }
+    const { holes, players, problems } = readScorecard();
+    if (!surfaceProblems(problems)) return;
+    const teams = teamsFromPlayers(players);
     if (teams.length < 2) {
       showError("error-2", "At least 2 teams (scorecards) are required for Better Ball. Use '+ Add Another Scorecard' to add a second group.");
       return;
@@ -1965,6 +2390,12 @@
       document.getElementById("quota-results").classList.add("hidden");
       document.getElementById("nassau-results").classList.add("hidden");
       document.getElementById("bb-results").classList.remove("hidden");
+      // Stash team rosters (index-aligned with body.team_totals) for the settlement.
+      state.lastBetterBall = {
+        teams: teams.map(t => ({ name: t.name, players: t.players.map(p => p.name) })),
+        team_totals: body.team_totals,
+        min_total: body.min_total,
+      };
       renderBetterBallResults(body);
       goStep(3);
 
@@ -2008,14 +2439,14 @@
         const contributors = t.contributors.map(c => `${escHtml(c.name)} (${c.net})`).join(", ");
         const vsPar        = t.team_score != null ? fmtVsPar(t.team_score - holeBbPar) : "\u2014";
         html += `<td class='${cls}'>`;
-        html += `<div class='score-gross'>${t.team_score ?? "\u2014"} <span style='font-weight:400;font-size:.8rem;color:inherit;'>(${vsPar})</span></div>`;
+        html += `<div class='score-gross'>${t.team_score ?? "\u2014"} <span class='cell-vspar'>(${vsPar})</span></div>`;
         html += `<div class='score-net'>${contributors}</div>`;
         html += `</td>`;
       });
       html += "</tr>";
     });
 
-    html += `<tr style='font-weight:700;background:var(--linen);'><td>Total</td><td>${bbPar}</td>`;
+    html += `<tr class='total-row'><td>Total</td><td>${bbPar}</td>`;
     data.team_totals.forEach((total, i) => {
       const cls    = total === minTotal ? "gross-win" : "";
       const vsPar  = fmtVsPar(total - bbPar);
@@ -2023,52 +2454,17 @@
     });
     html += "</tr></tbody>";
     bt.innerHTML = html;
+
+    // Money settlement — recompute against the current team bet.
+    updateBetterBallSettlement();
   }
 
   /* -- Step 2 -> Nassau calculate -- */
   async function calculateNassau() {
     clearError("error-2");
-    const n = state.numHoles;
 
-    const holes = [];
-    for (let i = 0; i < n; i++) {
-      const par = parseInt(document.getElementById(`par-${i}`)?.value);
-      const hcp = parseInt(document.getElementById(`hcp-${i}`)?.value);
-      if (isNaN(par) || isNaN(hcp)) {
-        showError("error-2", `Hole ${i + 1}: par and HCP rating are required.`);
-        return;
-      }
-      holes.push({ number: i + 1, par, handicap_rating: hcp });
-    }
-
-    const players = [];
-    const rows    = playerRows();
-    for (const row of rows) {
-      const pi       = row.id.split("-")[2];
-      const name     = document.getElementById(`pname-${pi}`)?.value.trim();
-      const handicap = parseInt(document.getElementById(`phcp-${pi}`)?.value);
-      if (!name) continue;
-      if (isNaN(handicap) || handicap < 0) {
-        showError("error-2", `Please enter a valid handicap for ${name}.`);
-        return;
-      }
-      const scores = [];
-      for (let i = 0; i < n; i++) {
-        const raw = (document.getElementById(`score-${pi}-${i}`)?.value ?? "").trim();
-        if (raw === "" || raw.toLowerCase() === "x") {
-          scores.push(null);
-          continue;
-        }
-        const s = parseInt(raw);
-        if (isNaN(s) || s < 1) {
-          showError("error-2", `Invalid score for ${name} on hole ${i + 1}. Enter a number or X.`);
-          return;
-        }
-        scores.push(s);
-      }
-      players.push({ name, handicap, scores });
-    }
-
+    const { holes, players, problems } = readScorecard();
+    if (!surfaceProblems(problems)) return;
     if (players.length !== 4) {
       showError("error-2", `Nassau requires exactly 4 players \u2014 ${players.length} found.`);
       return;
@@ -2128,22 +2524,21 @@
     segDefs.forEach(({ key, label }) => {
       const seg = data[key];
       if (!seg) return;
-      betsHtml += `<div style="margin-bottom:18px;">
-        <div style="font-family:var(--font);font-size:.72rem;font-weight:700;color:var(--ink-mid);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">${label}</div>`;
+      betsHtml += `<div class="bet-seg">
+        <div class="bet-seg-label">${label}</div>`;
 
       seg.matches.forEach(m => {
         const winnerName = m.winner === 1 ? t1Name : m.winner === 2 ? t2Name : null;
         const winHtml    = winnerName
-          ? `<span style="font-weight:700;color:var(--augusta);">${winnerName}</span>`
-          : `<span style="color:var(--ink-dim);">All Square</span>`;
+          ? `<span class="bet-winner">${winnerName}</span>`
+          : `<span class="muted">All Square</span>`;
         const matchLabel = m.is_auto
           ? `Press ${m.match_num} (holes ${m.start_hole}\u2013${m.end_hole})`
           : `Original (holes ${m.start_hole}\u2013${m.end_hole})`;
-        const cardBg = m.is_auto ? "var(--augusta-bg)" : "var(--linen)";
 
-        betsHtml += `<div style="border:1px solid var(--border-lt);border-radius:var(--radius);padding:12px 16px;margin-bottom:8px;background:${cardBg};">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
-            <span style="font-size:.82rem;font-weight:600;color:var(--ink);">${matchLabel}</span>
+        betsHtml += `<div class="bet-card${m.is_auto ? " is-press" : ""}">
+          <div class="bet-row">
+            <span class="bet-label">${matchLabel}</span>
             ${winHtml}
           </div>
         </div>`;
@@ -2152,6 +2547,29 @@
       betsHtml += `</div>`;
     });
     document.getElementById("nassau-bets").innerHTML = betsHtml;
+
+    // The ruling: tally match wins across all three bets to call the day.
+    let t1wins = 0, t2wins = 0;
+    segDefs.forEach(({ key }) => {
+      const seg = data[key];
+      if (!seg) return;
+      seg.matches.forEach(m => {
+        if (m.winner === 1) t1wins++;
+        else if (m.winner === 2) t2wins++;
+      });
+    });
+    const winnerEl = document.getElementById("nassau-winner");
+    if (t1wins === 0 && t2wins === 0) {
+      winnerEl.innerHTML = `<div class='win-banner'><div class='win-tie'>All Square</div>
+        <div class='win-detail'>Every bet halved &mdash; nothing changes hands.</div></div>`;
+    } else if (t1wins === t2wins) {
+      winnerEl.innerHTML = `<div class='win-banner'><div class='win-tie'>All Square on the Day</div>
+        <div class='win-detail'>${t1Name} ${t1wins} &middot; ${t2Name} ${t2wins}</div></div>`;
+    } else {
+      const won = Math.max(t1wins, t2wins), lost = Math.min(t1wins, t2wins);
+      winnerEl.innerHTML = `<div class='win-banner'><div class='win-name'>${t1wins > t2wins ? t1Name : t2Name}</div>
+        <div class='win-detail'>Wins the day &mdash; ${won} of ${won + lost} bets</div></div>`;
+    }
 
     const nt = document.getElementById("nassau-table");
     let html = `<thead><tr>
@@ -2163,10 +2581,10 @@
 
     data.holes.forEach(hole => {
       const resultLabel = hole.result === 1
-        ? `<span style="color:var(--augusta);font-weight:700;">T1 \u2713</span>`
+        ? `<span class="res-t1">T1 \u2713</span>`
         : hole.result === 2
-          ? `<span style="color:var(--azalea);font-weight:700;">T2 \u2713</span>`
-          : `<span style="color:var(--ink-dim);">Halved</span>`;
+          ? `<span class="res-t2">T2 \u2713</span>`
+          : `<span class="muted">Halved</span>`;
 
       const ann = holeStatusMap[hole.number];
       let statusHtml = "";
@@ -2174,20 +2592,20 @@
         statusHtml = ann.statuses.map(s => {
           const lbl  = s.is_auto ? `Press ${s.match_num}` : "Orig";
           const stat = s.diff === 0 ? "A/S" : s.diff > 0 ? `T1 ${s.diff}UP` : `T2 ${Math.abs(s.diff)}UP`;
-          return `<span style="font-size:.72rem;white-space:nowrap;">${lbl}: <strong>${stat}</strong></span>`;
+          return `<span class="status-chip">${lbl}: <strong>${stat}</strong></span>`;
         }).join("<br>");
         if (ann.auto_opens) {
-          statusHtml += `<br><span style="font-size:.7rem;color:var(--gold-dk);font-weight:700;">\u26A1 Press</span>`;
+          statusHtml += `<br><span class="press-flag">\u26A1 Press</span>`;
         }
       }
 
       const playerCell = (details, bestNet) =>
         details.map(d => {
           if (d.gross == null) {
-            return `<span style="color:var(--ink-dim);">${escHtml(d.name)}: X</span>`;
+            return `<span class="muted">${escHtml(d.name)}: X</span>`;
           }
-          const s = d.net === bestNet ? "font-weight:700;" : "color:var(--ink-dim);";
-          return `<span style="${s}">${escHtml(d.name)}: ${d.gross}\u2192${d.net}</span>`;
+          const s = d.net === bestNet ? "is-best" : "muted";
+          return `<span class="${s}">${escHtml(d.name)}: ${d.gross}\u2192${d.net}</span>`;
         }).join("<br>");
 
       const t1cls = hole.result === 1 ? "gross-win" : "";
@@ -2195,22 +2613,28 @@
 
       html += `<tr>
         <td>${hole.number}</td><td>${hole.par}</td>
-        <td style="text-align:left;font-size:.78rem;">${playerCell(hole.t1_details, hole.t1_best)}</td>
-        <td class="${t1cls}" style="font-weight:700;">${hole.t1_best == null ? "\u2014" : hole.t1_best}</td>
-        <td style="text-align:left;font-size:.78rem;">${playerCell(hole.t2_details, hole.t2_best)}</td>
-        <td class="${t2cls}" style="font-weight:700;">${hole.t2_best == null ? "\u2014" : hole.t2_best}</td>
+        <td class="cell-detail">${playerCell(hole.t1_details, hole.t1_best)}</td>
+        <td class="${t1cls} cell-strong">${hole.t1_best == null ? "\u2014" : hole.t1_best}</td>
+        <td class="cell-detail">${playerCell(hole.t2_details, hole.t2_best)}</td>
+        <td class="${t2cls} cell-strong">${hole.t2_best == null ? "\u2014" : hole.t2_best}</td>
         <td>${resultLabel}</td>
-        <td style="text-align:left;">${statusHtml}</td>
+        <td class="cell-l">${statusHtml}</td>
       </tr>`;
     });
 
     html += "</tbody>";
     nt.innerHTML = html;
+
+    // Money settlement — each bet won is worth the stake; recompute on input.
+    state.lastNassau = { names: players.map(p => p.name), t1wins, t2wins };
+    updateNassauSettlement();
   }
 
   /* -- Reset -- */
   function startOver() {
-    state = { imageFile: null, extractedData: null, numHoles: 18, nextPlayerIdx: 0, nextTeamIdx: 0, selectedGame: null };
+    state = { imageFile: null, extractedData: null, numHoles: 18, nextPlayerIdx: 0, nextTeamIdx: 0, selectedGame: null,
+              lastSkinsTally: null, lastQuota: null, lastVegas: null, lastNassau: null, lastBetterBall: null };
+    Object.keys(pendingRemovals).forEach(pi => { clearTimeout(pendingRemovals[pi]); delete pendingRemovals[pi]; });
     fileInput.value = "";
     previewWrap.style.display = "none";
     previewImg.src  = "";
