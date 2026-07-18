@@ -408,13 +408,14 @@ Required format:
 
 Rules:
 - Return holes in order 1–18 (or 1–9 for a 9-hole card).
-- The row labeled "Hdcp", "HCP", "Stroke", "Handicap", or similar is the handicap_rating (1 = hardest hole).
-- Each handicap_rating 1–18 appears exactly once across all holes.
+- handicap_rating is the hole stroke index — a row near the "Par" row or the tee-yardage rows. Use the row labeled exactly "Handicap" or "Men's Handicap" (the standard stroke index).
+- A card may show more than one stroke-index row for different tees, prefixed by a tee color (e.g. "White Handicap", "Gold Handicap"). Ignore those color-prefixed rows — always use the plain "Handicap" / "Men's Handicap" row.
+- Each handicap_rating 1–18 appears exactly once across all holes (1 = hardest hole).
 - scores array length must equal the holes array length and be in hole order.
 - If a score cell is blank or illegible, use null.
 - Include only players who have at least one score filled in.
 - Do not include "Handicap" or "Net" rows as players.
-- Each player's name cell contains a small box or subscript where their course handicap index is handwritten. Extract that number as the "handicap" field for each player. If the box is blank or illegible, use null.
+- Each player's course handicap (the "handicap" field) is handwritten near their name — usually in a small box in the top-right corner of the name cell, or written next to the name if there is no box. Extract that number. This is the player's own handicap, NOT a hole's stroke index. If it is blank or illegible, use null.
 """
 
 

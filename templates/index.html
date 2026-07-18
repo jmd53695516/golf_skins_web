@@ -1445,6 +1445,25 @@
     }
 
     if (n === 2) syncGameControls();
+    if (n === 0) cascadePicker();
+  }
+
+  /* -- Step 0: the game picker cascades in — title first, then each game -- */
+  function cascadePicker() {
+    if (prefersReducedMotion()) return;              // static; buttons already visible
+    const head = document.querySelector("#step-0 .picker-head");
+    const btns = Array.from(document.querySelectorAll("#step-0 .game-btn"));
+    const items = head ? [head, ...btns] : btns;
+    if (!items.length || typeof items[0].animate !== "function") return;
+    items.forEach((el, i) => {
+      // fill:"backwards" holds each item hidden through its delay, so it waits
+      // then settles in — rather than flashing visible before its turn.
+      el.animate(
+        [{ opacity: 0, transform: "translateY(14px)" },
+         { opacity: 1, transform: "none" }],
+        { duration: 440, delay: 50 + i * 65, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "backwards" }
+      );
+    });
   }
 
   /* -- "The Ruling": orchestrate the winner reveal after results render -- */
