@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-18T00:00:00.000Z",
+  "title": "Design System: Golf Game Scorer",
+  "extensions": {
+    "colorMeta": {
+      "green": { "role": "primary", "displayName": "Green", "canonical": "#0a7d54", "tonalRamp": ["#04241a", "#063d2c", "#075c3e", "#096b48", "#0a7d54", "#12a06d", "#7fcbb0", "#e7f3ee"] },
+      "slate": { "role": "secondary", "displayName": "Slate", "canonical": "#5b6b7a", "tonalRamp": ["#1e262d", "#2f3943", "#3f4b57", "#5b6b7a", "#7a8794", "#9aa5b0", "#c4ccd3", "#eef1f4"] },
+      "red": { "role": "tertiary", "displayName": "Red", "canonical": "#c8324b", "tonalRamp": ["#3f0e17", "#6b1826", "#932336", "#c8324b", "#d9556b", "#e88397", "#f2b8c3", "#fdecef"] },
+      "bg": { "role": "neutral", "displayName": "Neutral", "canonical": "#f6f7f9", "tonalRamp": ["#14181c", "#4a5560", "#5f6b78", "#aeb6bf", "#dfe3e8", "#e8ebef", "#f6f7f9", "#ffffff"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "The game-picker headline. One big statement." },
+      "heading": { "displayName": "Heading", "purpose": "Card titles and the app title." },
+      "body": { "displayName": "Body", "purpose": "Descriptions and helper copy; cap at 65-75ch." },
+      "data": { "displayName": "Data", "purpose": "Score inputs, tallies, result numbers. Tabular figures." },
+      "label": { "displayName": "Label", "purpose": "Small uppercase micro-caps: step labels, table headers. Used sparingly." }
+    },
+    "shadows": [
+      { "name": "resting", "value": "0 1px 2px rgba(20,24,28,.04), 0 2px 8px rgba(20,24,28,.05)", "purpose": "Cards, buttons, game rows at rest." },
+      { "name": "lifted", "value": "0 4px 16px rgba(20,24,28,.08), 0 12px 28px rgba(20,24,28,.06)", "purpose": "Hover elevation for interactive surfaces." },
+      { "name": "green-cta", "value": "0 1px 2px rgba(10,125,84,.25), 0 6px 16px rgba(10,125,84,.18)", "purpose": "The primary green button sits slightly proud." },
+      { "name": "ceremonial", "value": "0 8px 30px rgba(10,125,84,.28)", "purpose": "The winner banner only." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "ease", "purpose": "Default easing for state transitions (0.1s-0.25s)." },
+      { "name": "spin", "value": "@keyframes spin { to { transform: rotate(360deg); } }", "purpose": "Loading spinner, 0.9s linear infinite." },
+      { "name": "reduced-motion", "value": "@media (prefers-reduced-motion: reduce) { animations/transitions -> ~0ms }", "purpose": "Honors the OS reduced-motion setting." }
+    ],
+    "breakpoints": [
+      { "name": "phone-first", "value": "single-column, no width breakpoints; fluid within a hand-held viewport" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The default and emphasis action — solid green, full width.",
+      "html": "<button class=\"ds-btn-primary\">Calculate Skins</button>",
+      "css": ".ds-btn-primary { display:block; width:100%; padding:15px; border:1px solid transparent; border-radius:10px; font-family:Inter,system-ui,sans-serif; font-size:.95rem; font-weight:600; letter-spacing:-.01em; cursor:pointer; background:#0a7d54; color:#fff; box-shadow:0 1px 2px rgba(10,125,84,.25),0 6px 16px rgba(10,125,84,.18); transition:background .2s ease, box-shadow .2s ease, transform .1s ease; } .ds-btn-primary:hover { background:#096b48; transform:translateY(-1px); } .ds-btn-primary:active { transform:scale(.985); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Lower-emphasis action — white fill, neutral border, green text.",
+      "html": "<button class=\"ds-btn-secondary\">Back to Upload</button>",
+      "css": ".ds-btn-secondary { display:block; width:100%; padding:15px; border:1px solid #dfe3e8; border-radius:10px; font-family:Inter,system-ui,sans-serif; font-size:.95rem; font-weight:600; letter-spacing:-.01em; cursor:pointer; background:#fff; color:#096b48; transition:border-color .2s ease, background .2s ease; } .ds-btn-secondary:hover { border-color:#0a7d54; background:#e7f3ee; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The white surface that holds a step's content.",
+      "html": "<section class=\"ds-card\"><h2>Review Extracted Data</h2><p>Check the scores the AI read from your photo.</p></section>",
+      "css": ".ds-card { background:#fff; border:1px solid #e8ebef; border-radius:14px; box-shadow:0 1px 2px rgba(20,24,28,.04),0 2px 8px rgba(20,24,28,.05); padding:24px; color:#14181c; } .ds-card h2 { font-family:Inter,system-ui,sans-serif; font-size:1.15rem; font-weight:700; color:#14181c; margin:0 0 16px; padding-bottom:12px; border-bottom:1px solid #e8ebef; letter-spacing:-.01em; } .ds-card p { font-family:Inter,system-ui,sans-serif; font-size:.95rem; line-height:1.55; color:#5f6b78; margin:0; }"
+    },
+    {
+      "name": "Score Box",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Large hole-numbered score input; tabular figures.",
+      "html": "<label class=\"ds-hole-cell\"><span class=\"ds-hole-no\">7</span><input type=\"text\" inputmode=\"numeric\" value=\"4\" aria-label=\"Hole 7 score\" /></label>",
+      "css": ".ds-hole-cell { display:inline-flex; flex-direction:column; align-items:center; gap:3px; } .ds-hole-cell .ds-hole-no { font-size:.66rem; font-weight:700; color:#4a5560; } .ds-hole-cell input { width:58px; height:46px; text-align:center; font-size:1.05rem; font-weight:600; font-variant-numeric:tabular-nums; font-family:Inter,system-ui,sans-serif; border:1px solid #dfe3e8; border-radius:7px; background:#fff; color:#14181c; } .ds-hole-cell input:focus { outline:none; border-color:#0a7d54; box-shadow:0 0 6px rgba(10,125,84,.2); }"
+    },
+    {
+      "name": "Game Row",
+      "kind": "custom",
+      "refersTo": "game-btn",
+      "description": "Game-picker row: icon well, name, description, sliding chevron. No side-stripe.",
+      "html": "<button class=\"ds-game-btn\"><span class=\"ds-game-icon\">⛳</span><span class=\"ds-game-info\"><span class=\"ds-game-name\">Skins</span><span class=\"ds-game-desc\">Lowest score wins each hole; ties carry over.</span></span><span class=\"ds-game-chevron\">›</span></button>",
+      "css": ".ds-game-btn { display:flex; align-items:center; gap:15px; width:100%; padding:16px 18px; background:#fff; border:1px solid #dfe3e8; border-radius:10px; cursor:pointer; text-align:left; color:#14181c; box-shadow:0 1px 2px rgba(20,24,28,.04),0 2px 8px rgba(20,24,28,.05); transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease; } .ds-game-btn:hover { border-color:#0a7d54; box-shadow:0 4px 16px rgba(20,24,28,.08),0 12px 28px rgba(20,24,28,.06); transform:translateY(-1px); } .ds-game-icon { width:44px; height:44px; border-radius:12px; background:#e7f3ee; border:1px solid transparent; display:flex; align-items:center; justify-content:center; font-size:1.25rem; flex-shrink:0; } .ds-game-btn:hover .ds-game-icon { border-color:#0a7d54; } .ds-game-info { display:flex; flex-direction:column; gap:3px; flex:1; } .ds-game-name { font-family:Inter,system-ui,sans-serif; font-size:1.02rem; font-weight:700; color:#14181c; letter-spacing:-.01em; } .ds-game-desc { font-family:Inter,system-ui,sans-serif; font-size:.8rem; color:#5f6b78; line-height:1.5; } .ds-game-chevron { color:#5f6b78; font-size:1.3rem; flex-shrink:0; transition:all .2s; } .ds-game-btn:hover .ds-game-chevron { color:#0a7d54; transform:translateX(3px); }"
+    },
+    {
+      "name": "Winner Banner",
+      "kind": "custom",
+      "refersTo": "win-banner",
+      "description": "The payoff — green gradient plaque, heavy sans winner name. The one saturated moment.",
+      "html": "<div class=\"ds-win-banner\"><div class=\"ds-win-name\">Sam P.</div><div class=\"ds-win-detail\">Takes 4 skins · $40</div></div>",
+      "css": ".ds-win-banner { background:linear-gradient(135deg,#12a06d 0%,#096b48 100%); border:1px solid rgba(255,255,255,.14); border-radius:14px; padding:26px 24px; text-align:center; color:#fff; box-shadow:0 8px 30px rgba(10,125,84,.28); } .ds-win-name { font-family:Inter,system-ui,sans-serif; font-size:1.5rem; font-weight:800; letter-spacing:-.02em; margin-bottom:6px; } .ds-win-detail { font-family:Inter,system-ui,sans-serif; font-size:.85rem; color:rgba(255,255,255,.85); }"
+    },
+    {
+      "name": "Result Badges",
+      "kind": "chip",
+      "refersTo": "winner-badge",
+      "description": "Green for gross wins, slate for net wins, inert for none.",
+      "html": "<span class=\"ds-badge ds-badge-gross\">Sam</span> <span class=\"ds-badge ds-badge-net\">Ann</span> <span class=\"ds-badge ds-badge-none\">–</span>",
+      "css": ".ds-badge { display:inline-block; padding:3px 10px; border-radius:20px; font-family:Inter,system-ui,sans-serif; font-size:.68rem; font-weight:700; letter-spacing:.01em; } .ds-badge-gross { background:#e7f3ee; color:#096b48; } .ds-badge-net { background:#eef1f4; color:#3f4b57; } .ds-badge-none { background:#eaedf1; color:#5f6b78; }"
+    },
+    {
+      "name": "Toggle",
+      "kind": "custom",
+      "refersTo": "toggle",
+      "description": "Pill switch that slides to green when on.",
+      "html": "<label class=\"ds-toggle\"><input type=\"checkbox\" checked /><span class=\"ds-toggle-slider\"></span><span class=\"ds-toggle-text\">Auto presses</span></label>",
+      "css": ".ds-toggle { display:inline-flex; align-items:center; gap:10px; cursor:pointer; user-select:none; } .ds-toggle input { position:absolute; opacity:0; width:0; height:0; } .ds-toggle-slider { position:relative; width:40px; height:22px; background:#dfe3e8; border-radius:22px; transition:background .25s ease; flex-shrink:0; } .ds-toggle-slider::after { content:''; position:absolute; top:2px; left:2px; width:18px; height:18px; background:#fff; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.15); transition:transform .25s ease; } .ds-toggle input:checked ~ .ds-toggle-slider { background:#0a7d54; } .ds-toggle input:checked ~ .ds-toggle-slider::after { transform:translateX(18px); } .ds-toggle-text { font-family:Inter,system-ui,sans-serif; font-size:.88rem; font-weight:600; color:#4a5560; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Pocket Scoreboard",
+    "overview": "A premium sports/finance app that happens to score golf bets — the feel of Apple Sports or a Stripe receipt, not a country-club interior. Surfaces are near-white, text is near-black ink, and a single restrained green is the only real color: primary action, current step, and wins. One typeface (Inter) in a range of weights, with tabular figures so scores line up like a scoreboard. Calm, fast, authoritative — it earns trust through legibility and restraint, not decoration, because the organizer is settling money on a phone in bright sun. It rejects the free-scorecard-app look, the SaaS dashboard, the cluttered spreadsheet, and its own former ornate Augusta/gold/serif self.",
+    "keyCharacteristics": [
+      "Near-white surfaces on a light neutral field; near-black ink",
+      "One green accent, held to ~10% of any screen",
+      "One sans (Inter), all weights, tabular numerals for all data",
+      "Flat and quiet at rest; the winner banner is the single saturated moment",
+      "Phone-first, one-column, generously sized for arm's-length reading"
+    ],
+    "rules": [
+      { "name": "The Green-Is-The-Ruling Rule", "body": "Green is reserved for the primary action, the current step, and a win. Never a page or card background, never decoration. Its scarcity is what makes a green cue read as 'this is the answer.'", "section": "colors" },
+      { "name": "The Gross-Green / Net-Slate Rule", "body": "Gross results tint green; net results tint slate. The only place a second color enters the data layer, so the two scoring categories are never confused at a glance.", "section": "colors" },
+      { "name": "The Tabular-Figures Rule", "body": "All numerals are tabular so scores, points and totals align in columns like a scoreboard. Proportional figures in a score grid are prohibited.", "section": "typography" },
+      { "name": "The One-Voice Rule", "body": "One typeface (Inter), differentiated by weight. No serif, no display face, no second family anywhere.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest. Elevation is a response to interaction or importance (the winner banner), never ambient decoration.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep green to ~10% of any screen: primary action, current step, and wins only.",
+      "Do tint gross results green and net results slate.",
+      "Do set every numeral in tabular figures so scores align.",
+      "Do use one typeface (Inter) across the whole app, differentiated by weight.",
+      "Do keep surfaces white on the #f6f7f9 field, with near-black #14181c ink.",
+      "Do keep it one-column and phone-first, with large tap targets."
+    ],
+    "donts": [
+      "Don't reintroduce the retired Augusta costume: no gold, no leather-grain texture, no Cormorant serif, no rainbow header stripe.",
+      "Don't use a colored side-stripe (border-left > 1px) on cards, banners, or panels.",
+      "Don't make it look like a 'free scorecard app' — no cartoon mascots, clip-art, or novelty fonts.",
+      "Don't drift toward a generic SaaS dashboard — no cold blue-and-gray chrome.",
+      "Don't present results as a cluttered spreadsheet — big labeled cells, not tiny gridlined numbers.",
+      "Don't use pure white pages or pure black text, and don't let green become a background flood."
+    ]
+  }
+}

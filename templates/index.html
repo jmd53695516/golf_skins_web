@@ -6,109 +6,115 @@
   <title>Golf Game Scorer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Libre+Franklin:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      /* Augusta palette */
-      --augusta:     #006747;
-      --augusta-dk:  #004d35;
-      --augusta-lt:  #1a7a5a;
-      --augusta-bg:  #e8f2ec;
-      --gold:        #c8a951;
-      --gold-dk:     #a68a3a;
-      --gold-lt:     #dfc474;
-      --gold-bg:     rgba(200,169,81,.08);
-      --azalea:      #d4577a;
-      --azalea-lt:   #e07a97;
-      --azalea-bg:   rgba(212,87,122,.06);
-      --leather:     #8b6f47;
-      --leather-lt:  #a68a5b;
-      --magnolia:    #fdf8f0;
-      --linen:       #f7f1e6;
-      --parchment:   #eee5d3;
-      --ink:         #2c2416;
-      --ink-mid:     #5c4f3a;
-      --ink-dim:     #8a7d6b;
-      --border:      #d6c9a8;
-      --border-lt:   #e5dbc5;
-      --radius:      8px;
+      /* Sleek light system — neutral surfaces, one restrained green accent */
+      --font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+      /* Green accent (primary interactive; kept to ~10% of the surface) */
+      --augusta:     #0a7d54;
+      --augusta-dk:  #096b48;
+      --augusta-lt:  #12a06d;
+      --augusta-bg:  #e7f3ee;
+
+      /* Legacy "gold" tokens now map onto the same green accent, so focus
+         rings, the active step and primary CTAs all read green, not gold. */
+      --gold:        #0a7d54;
+      --gold-dk:     #096b48;
+      --gold-lt:     #12a06d;
+      --gold-bg:     #e7f3ee;
+
+      /* Slate — the quiet secondary that tells "net" apart from "gross" */
+      --slate:       #5b6b7a;
+      --slate-ink:   #3f4b57;
+      --slate-bg:    #eef1f4;
+
+      /* Red — destructive actions & errors */
+      --azalea:      #c8324b;
+      --azalea-lt:   #d9556b;
+      --azalea-bg:   #fdecef;
+
+      /* Neutrals */
+      --magnolia:    #ffffff;   /* card surface */
+      --linen:       #f6f7f9;   /* page background / secondary panels */
+      --parchment:   #eaedf1;   /* inert fill */
+      --leather:     #8a94a0;
+      --leather-lt:  #a3abb5;
+
+      /* Ink (text) — all >= 4.5:1 on white and on --linen */
+      --ink:         #14181c;
+      --ink-mid:     #4a5560;
+      --ink-dim:     #5f6b78;
+
+      /* Lines */
+      --border:      #dfe3e8;
+      --border-lt:   #e8ebef;
+
+      --radius:      10px;
       --radius-lg:   14px;
-      --shadow:      0 1px 8px rgba(44,36,22,.06), 0 4px 16px rgba(44,36,22,.04);
-      --shadow-md:   0 2px 12px rgba(44,36,22,.08), 0 8px 32px rgba(44,36,22,.06);
-      --shadow-gold: 0 2px 16px rgba(200,169,81,.15);
+
+      --shadow:      0 1px 2px rgba(20,24,28,.04), 0 2px 8px rgba(20,24,28,.05);
+      --shadow-md:   0 4px 16px rgba(20,24,28,.08), 0 12px 28px rgba(20,24,28,.06);
+      --shadow-gold: 0 2px 16px rgba(10,125,84,.14);   /* soft green glow */
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Libre Franklin', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: var(--font);
       background: var(--linen);
       color: var(--ink);
       min-height: 100vh;
       overflow-x: hidden;
-    }
-
-    /* leather grain texture */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      opacity: .018;
-      pointer-events: none;
-      z-index: 9999;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-repeat: repeat;
-      background-size: 256px 256px;
+      font-variant-numeric: tabular-nums;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     /* ---- Header ---- */
     header {
-      background: var(--augusta);
-      color: #fff;
-      padding: 18px 22px;
+      background: var(--magnolia);
+      color: var(--ink);
+      padding: 16px 22px;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 13px;
       position: relative;
-      box-shadow: 0 2px 12px rgba(0,103,71,.25);
-    }
-    header::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--gold) 0%, var(--gold-lt) 40%, var(--azalea-lt) 80%, transparent 100%);
+      border-bottom: 1px solid var(--border);
     }
     .header-emblem {
-      width: 42px; height: 42px;
-      background: rgba(255,255,255,.1);
-      border: 1.5px solid var(--gold);
-      border-radius: 50%;
+      width: 40px; height: 40px;
+      background: var(--augusta-bg);
+      border: 1px solid var(--augusta);
+      color: var(--augusta-dk);
+      border-radius: 11px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       flex-shrink: 0;
-      box-shadow: 0 0 12px rgba(200,169,81,.2);
     }
     .header-text h1 {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 1.25rem;
+      font-family: var(--font);
+      font-size: 1.15rem;
       font-weight: 700;
       line-height: 1.2;
-      letter-spacing: .02em;
+      letter-spacing: -.01em;
+      color: var(--ink);
     }
     .header-text p {
-      font-size: .58rem;
-      font-weight: 500;
-      letter-spacing: .2em;
+      font-size: .62rem;
+      font-weight: 600;
+      letter-spacing: .1em;
       text-transform: uppercase;
-      color: var(--gold-lt);
-      margin-top: 2px;
+      color: var(--ink-dim);
+      margin-top: 3px;
     }
 
     /* ---- Step indicator ---- */
     .steps {
-      background: var(--augusta);
-      padding: 8px 28px 18px;
+      background: var(--magnolia);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 28px 16px;
       display: flex;
       align-items: center;
     }
@@ -116,47 +122,47 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       flex: 0 0 auto;
     }
     .step-num {
       width: 28px; height: 28px;
       border-radius: 50%;
-      background: rgba(255,255,255,.12);
-      color: rgba(255,255,255,.35);
+      background: var(--linen);
+      color: var(--ink-dim);
       display: flex; align-items: center; justify-content: center;
-      font-size: .72rem;
+      font-size: .78rem;
       font-weight: 700;
-      transition: all .35s ease;
-      font-family: 'Cormorant Garamond', serif;
-      border: 1px solid rgba(255,255,255,.08);
+      transition: all .25s ease;
+      font-family: var(--font);
+      border: 1px solid var(--border);
     }
     .step-lbl {
-      font-size: .58rem;
-      color: rgba(255,255,255,.3);
-      letter-spacing: .12em;
+      font-size: .6rem;
+      color: var(--ink-dim);
+      letter-spacing: .06em;
       text-transform: uppercase;
-      font-weight: 500;
-      transition: color .3s;
+      font-weight: 600;
+      transition: color .25s;
       white-space: nowrap;
     }
     .step-dot.active .step-num {
-      background: var(--gold);
-      color: var(--augusta-dk);
-      border-color: var(--gold-lt);
-      box-shadow: 0 0 14px rgba(200,169,81,.4);
-    }
-    .step-dot.active .step-lbl { color: var(--gold-lt); }
-    .step-dot.done .step-num {
-      background: rgba(255,255,255,.2);
+      background: var(--augusta);
       color: #fff;
-      border-color: rgba(255,255,255,.25);
+      border-color: var(--augusta);
     }
-    .step-dot.done .step-lbl { color: rgba(255,255,255,.55); }
+    .step-dot.active .step-lbl { color: var(--augusta-dk); }
+    .step-dot.done .step-num {
+      background: var(--augusta-bg);
+      color: var(--augusta-dk);
+      border-color: var(--augusta);
+    }
+    .step-dot.done .step-lbl { color: var(--ink-mid); }
     .step-conn {
       flex: 1;
-      height: 1px;
-      background: rgba(255,255,255,.15);
+      height: 2px;
+      border-radius: 2px;
+      background: var(--border);
       margin: 0 10px 18px;
     }
 
@@ -168,53 +174,43 @@
       padding: 24px;
       margin: 16px;
       border: 1px solid var(--border-lt);
-      position: relative;
-    }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 20px; right: 20px;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
-      opacity: .35;
     }
     .card h2 {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 1.2rem;
+      font-family: var(--font);
+      font-size: 1.15rem;
       font-weight: 700;
-      color: var(--augusta);
+      color: var(--ink);
       margin-bottom: 16px;
       padding-bottom: 12px;
       border-bottom: 1px solid var(--border-lt);
-      letter-spacing: .02em;
+      letter-spacing: -.01em;
     }
 
     /* ---- Game picker ---- */
     .picker-head {
-      padding: 40px 24px 10px;
+      padding: 36px 24px 8px;
       text-align: center;
     }
     .picker-head h2 {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 2rem;
-      font-weight: 700;
-      color: var(--augusta);
-      line-height: 1.15;
-      letter-spacing: .01em;
+      font-family: var(--font);
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.1;
+      letter-spacing: -.03em;
     }
     .picker-head p {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 1rem;
-      font-style: italic;
+      font-family: var(--font);
+      font-size: .95rem;
       color: var(--ink-dim);
-      margin-top: 6px;
-      letter-spacing: .02em;
+      margin-top: 8px;
+      line-height: 1.5;
     }
     .picker-divider {
       display: flex;
       align-items: center;
-      gap: 16px;
-      margin: 22px 22px 16px;
+      gap: 14px;
+      margin: 24px 22px 14px;
     }
     .picker-divider::before,
     .picker-divider::after {
@@ -224,10 +220,10 @@
       background: var(--border);
     }
     .picker-divider span {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: .7rem;
-      color: var(--gold-dk);
-      letter-spacing: .2em;
+      font-family: var(--font);
+      font-size: .68rem;
+      color: var(--ink-dim);
+      letter-spacing: .1em;
       text-transform: uppercase;
       font-weight: 600;
     }
@@ -236,129 +232,128 @@
     .game-btn {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 15px;
       width: 100%;
-      padding: 18px 20px;
+      padding: 16px 18px;
       background: var(--magnolia);
       border: 1px solid var(--border);
-      border-left: 4px solid var(--augusta);
       border-radius: var(--radius);
       cursor: pointer;
-      transition: all .3s ease;
+      transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
       text-align: left;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       box-shadow: var(--shadow);
-      opacity: 0;
-      animation: fadeUp .55s ease forwards;
       color: var(--ink);
-    }
-    .game-btn:nth-child(1) { animation-delay: .08s; }
-    .game-btn:nth-child(2) { animation-delay: .16s; }
-    .game-btn:nth-child(3) { animation-delay: .24s; }
-    .game-btn:nth-child(4) { animation-delay: .32s; }
-    .game-btn:nth-child(5) { animation-delay: .40s; }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
     }
     .game-btn:active { transform: scale(.99); }
     .game-btn:hover {
-      border-left-color: var(--gold);
-      background: #fff;
-      box-shadow: var(--shadow-md), var(--shadow-gold);
+      border-color: var(--augusta);
+      box-shadow: var(--shadow-md);
       transform: translateY(-1px);
     }
     .game-icon-wrap {
-      width: 46px; height: 46px;
-      border-radius: 50%;
+      width: 44px; height: 44px;
+      border-radius: 12px;
       background: var(--augusta-bg);
-      border: 1px solid rgba(0,103,71,.1);
+      border: 1px solid transparent;
       display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      transition: all .2s;
+    }
+    .game-btn:hover .game-icon-wrap { border-color: var(--augusta); }
+    .game-info { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+    .game-name {
+      font-family: var(--font);
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -.01em;
+    }
+    .game-desc { font-size: .8rem; color: var(--ink-dim); line-height: 1.5; }
+    .game-chevron {
+      color: var(--ink-dim);
       font-size: 1.3rem;
       flex-shrink: 0;
-      transition: all .3s;
+      transition: all .2s;
+      font-weight: 400;
     }
-    .game-btn:hover .game-icon-wrap {
-      background: var(--gold-bg);
-      border-color: var(--gold);
-      box-shadow: var(--shadow-gold);
-    }
-    .game-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-    .game-name {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--augusta);
-    }
-    .game-desc { font-size: .76rem; color: var(--ink-dim); line-height: 1.5; }
-    .game-chevron {
-      color: var(--border);
-      font-size: 1.2rem;
-      flex-shrink: 0;
-      transition: all .3s;
-      font-weight: 300;
-    }
-    .game-btn:hover .game-chevron { color: var(--gold); transform: translateX(3px); }
+    .game-btn:hover .game-chevron { color: var(--augusta); transform: translateX(3px); }
 
     /* ---- Buttons ---- */
     .btn {
       display: block;
       width: 100%;
       padding: 15px;
-      border: none;
+      border: 1px solid transparent;
       border-radius: var(--radius);
-      font-family: 'Libre Franklin', sans-serif;
-      font-size: .9rem;
+      font-family: var(--font);
+      font-size: .95rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all .25s ease;
+      transition: background .2s ease, box-shadow .2s ease, border-color .2s ease, transform .1s ease;
       text-align: center;
-      letter-spacing: .04em;
+      letter-spacing: -.01em;
     }
-    .btn:active { transform: scale(.98); }
-    .btn:disabled { opacity: .35; cursor: not-allowed; }
+    .btn:active { transform: scale(.985); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
     .btn-primary {
       background: var(--augusta);
       color: #fff;
-      box-shadow: 0 2px 10px rgba(0,103,71,.2);
     }
-    .btn-primary:hover:not(:disabled) {
-      background: var(--augusta-lt);
-      box-shadow: 0 4px 20px rgba(0,103,71,.3);
-    }
+    .btn-primary:hover:not(:disabled) { background: var(--augusta-dk); }
     .btn-secondary {
-      background: transparent;
-      color: var(--augusta);
-      border: 1.5px solid var(--augusta);
+      background: var(--magnolia);
+      color: var(--augusta-dk);
+      border-color: var(--border);
     }
     .btn-secondary:hover:not(:disabled) {
+      border-color: var(--augusta);
       background: var(--augusta-bg);
     }
+    /* Primary emphasis CTA (was the gold button) */
     .btn-gold {
-      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%);
+      background: var(--augusta);
       color: #fff;
-      box-shadow: 0 2px 12px rgba(200,169,81,.3);
-      text-shadow: 0 1px 2px rgba(0,0,0,.15);
+      box-shadow: 0 1px 2px rgba(10,125,84,.25), 0 6px 16px rgba(10,125,84,.18);
     }
     .btn-gold:hover:not(:disabled) {
-      box-shadow: 0 4px 24px rgba(200,169,81,.45);
+      background: var(--augusta-dk);
+      box-shadow: 0 2px 4px rgba(10,125,84,.28), 0 10px 22px rgba(10,125,84,.22);
       transform: translateY(-1px);
     }
     .btn-sm {
       display: inline-block;
       width: auto;
-      padding: 7px 16px;
-      font-size: .8rem;
+      padding: 8px 16px;
+      font-size: .82rem;
     }
     .btn-danger {
-      background: transparent;
+      background: var(--magnolia);
       color: var(--azalea);
-      border: 1.5px solid rgba(212,87,122,.3);
+      border-color: rgba(200,50,75,.35);
     }
     .btn-danger:hover:not(:disabled) {
       border-color: var(--azalea);
       background: var(--azalea-bg);
     }
+    .btn-link {
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+      padding: 8px;
+      background: none;
+      border: none;
+      color: var(--ink-mid);
+      font-family: var(--font);
+      font-size: .82rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      transition: color .2s ease;
+    }
+    .btn-link:hover { color: var(--augusta); }
 
     /* ---- Upload zone ---- */
     #upload-zone {
@@ -373,12 +368,12 @@
     #upload-zone:hover, #upload-zone.dragover {
       border-color: var(--augusta-lt);
       background: var(--augusta-bg);
-      box-shadow: inset 0 0 30px rgba(0,103,71,.03);
+      box-shadow: inset 0 0 30px rgba(10,125,84,.05);
     }
     .upload-circle {
       width: 66px; height: 66px;
       background: var(--augusta-bg);
-      border: 1.5px solid rgba(0,103,71,.12);
+      border: 1.5px solid rgba(10,125,84,.18);
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       font-size: 1.6rem;
@@ -390,7 +385,7 @@
       background: var(--augusta);
       border-color: var(--augusta);
       transform: scale(1.06);
-      box-shadow: 0 4px 20px rgba(0,103,71,.25);
+      box-shadow: 0 4px 20px rgba(10,125,84,.25);
     }
     #upload-zone p { color: var(--ink-dim); font-size: .87rem; line-height: 1.55; }
     #upload-zone input { display: none; }
@@ -409,7 +404,7 @@
     #loading {
       display: none;
       position: fixed; inset: 0;
-      background: rgba(44,36,22,.7);
+      background: rgba(20,24,28,.55);
       backdrop-filter: blur(8px);
       z-index: 99;
       flex-direction: column;
@@ -438,22 +433,20 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     #loading p {
-      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-family: var(--font);
       font-size: 1rem;
       font-weight: 500;
-      font-style: italic;
       color: var(--ink-mid);
     }
 
     /* ---- Error banner ---- */
     .error-msg {
       background: var(--azalea-bg);
-      border: 1px solid rgba(212,87,122,.15);
-      border-left: 4px solid var(--azalea);
+      border: 1px solid rgba(200,50,75,.25);
       border-radius: var(--radius);
       padding: 12px 16px;
-      color: #983352;
-      font-size: .87rem;
+      color: #9a1b32;
+      font-size: .9rem;
       margin-bottom: 14px;
       display: none;
       line-height: 1.5;
@@ -479,83 +472,174 @@
       white-space: nowrap;
     }
     th {
-      background: var(--augusta);
-      color: #fff;
-      font-weight: 600;
+      background: var(--linen);
+      color: var(--ink-mid);
+      font-weight: 700;
       text-align: center;
-      font-size: .68rem;
-      letter-spacing: .08em;
+      font-size: .66rem;
+      letter-spacing: .04em;
       text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
     }
     td { text-align: center; background: var(--magnolia); }
-    td.label-cell {
-      text-align: left;
-      background: var(--linen);
-      font-weight: 600;
-      min-width: 90px;
-      position: sticky;
-      left: 0;
-      z-index: 1;
-      border-right: 2px solid var(--border);
-      color: var(--ink-mid);
-    }
-    td input[type="number"], td input[type="text"] {
-      width: 44px;
-      padding: 5px;
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      text-align: center;
-      font-size: .82rem;
-      font-family: 'Libre Franklin', sans-serif;
-      background: #fff;
-      color: var(--ink);
-      transition: border-color .2s, box-shadow .2s;
-    }
-    td input:focus {
-      outline: none;
-      border-color: var(--gold);
-      box-shadow: 0 0 6px rgba(200,169,81,.2);
-    }
-    td input[type="text"] { width: 90px; text-align: left; }
-    .player-meta {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-width: 110px;
-    }
-    .player-meta input[type="text"]   { width: 100%; }
-    .player-meta input[type="number"] { width: 60px; }
-    .player-meta label { font-size: .72rem; color: var(--ink-dim); font-weight: 400; }
-
-    .add-player-row td { background: var(--linen); }
     .birdie-flag { font-size: .7rem; color: var(--azalea); font-weight: 700; margin-left: 3px; }
     .vegas-number { font-size: 1.1rem; font-weight: 700; color: var(--augusta-dk); }
     .vegas-pts { font-size: .75rem; color: var(--ink-dim); }
     .vegas-pts.earned { color: var(--augusta); font-weight: 700; }
     .flipped-label { font-size: .68rem; color: var(--azalea); font-weight: 600; }
 
-    .team-header-row td {
-      background: var(--augusta-bg);
-      padding: 8px 12px;
+    /* ---- Review (per-player cards) ---- */
+    .review-intro { font-size: .9rem; color: var(--ink-mid); margin-bottom: 16px; line-height: 1.55; }
+
+    .course-setup {
+      border: 1px solid var(--border-lt);
+      border-radius: var(--radius);
+      background: var(--linen);
+      margin-bottom: 18px;
+      overflow: hidden;
+    }
+    .course-setup > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 16px;
+      font-family: var(--font);
+      font-size: 1.05rem;
       font-weight: 700;
       color: var(--augusta);
-      font-size: .76rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .course-setup > summary::-webkit-details-marker { display: none; }
+    .course-setup > summary::after {
+      content: '\25BE';
+      color: var(--ink-mid);
+      font-size: .8rem;
+      transition: transform .2s ease;
+    }
+    .course-setup[open] > summary::after { transform: rotate(180deg); }
+    .course-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+      gap: 8px;
+      padding: 2px 16px 16px;
+    }
+    .course-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: var(--magnolia);
+      border: 1px solid var(--border-lt);
+      border-radius: 8px;
+      padding: 6px 4px;
+    }
+    .course-cell .hole-no { font-size: .68rem; font-weight: 700; color: var(--ink-mid); }
+    .course-cell .mini { display: flex; flex-direction: column; align-items: center; gap: 1px; width: 100%; }
+    .course-cell .mini span { font-size: .58rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-mid); }
+    .course-cell input {
+      width: 100%;
+      height: 34px;
+      text-align: center;
+      font-size: .92rem;
+      font-family: var(--font);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: #fff;
+      color: var(--ink);
+    }
+    .course-cell input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 6px rgba(10,125,84,.2); }
+
+    #players-list { display: flex; flex-direction: column; gap: 14px; }
+
+    .team-section { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .team-section .team-tag {
+      font-family: var(--font);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--augusta);
       text-transform: uppercase;
       letter-spacing: .08em;
-      font-family: 'Cormorant Garamond', Georgia, serif;
     }
-    .team-header-row input[type="text"] {
-      font-family: 'Libre Franklin', sans-serif;
+    .team-section input {
+      flex: 1;
+      font-family: var(--font);
       font-weight: 600;
       color: var(--augusta);
       border: 1px solid var(--augusta-lt);
-      border-radius: 5px;
-      padding: 4px 10px;
-      font-size: .82rem;
+      border-radius: 6px;
+      padding: 9px 12px;
+      font-size: .92rem;
       background: #fff;
-      width: 130px;
-      text-align: left;
     }
+    .team-section input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 6px rgba(10,125,84,.2); }
+
+    .player-card {
+      background: var(--magnolia);
+      border: 1px solid var(--border-lt);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .player-card-head { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .player-card-head .pcard-name {
+      flex: 1;
+      min-width: 150px;
+      font-family: var(--font);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--ink);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 11px 12px;
+      background: #fff;
+    }
+    .pcard-hcp { display: flex; flex-direction: column; gap: 3px; }
+    .pcard-hcp label { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-mid); font-weight: 600; }
+    .pcard-hcp input {
+      width: 74px;
+      height: 44px;
+      text-align: center;
+      font-size: 1rem;
+      font-family: var(--font);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+    }
+    .player-card-head .pcard-name:focus,
+    .pcard-hcp input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 6px rgba(10,125,84,.2); }
+    .pcard-remove {
+      background: transparent;
+      color: var(--azalea);
+      border: 1.5px solid rgba(200,50,75,.35);
+      border-radius: 6px;
+      padding: 0 14px;
+      height: 44px;
+      font-family: var(--font);
+      font-size: .8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .pcard-remove:hover { border-color: var(--azalea); background: var(--azalea-bg); }
+
+    .score-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 8px; }
+    .hole-cell { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .hole-cell .hole-no { font-size: .66rem; font-weight: 700; color: var(--ink-mid); }
+    .hole-cell input {
+      width: 100%;
+      height: 46px;
+      text-align: center;
+      font-size: 1.05rem;
+      font-weight: 600;
+      font-family: var(--font);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      padding: 0;
+    }
+    .hole-cell input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 6px rgba(10,125,84,.2); }
 
     /* ---- Results ---- */
     .results-table th { font-size: .68rem; }
@@ -563,20 +647,20 @@
     .score-cell { position: relative; }
     .score-gross { font-weight: 700; color: var(--ink); }
     .score-net   { font-size: .72rem; color: var(--ink-dim); }
-    td.gross-win { background: rgba(0,103,71,.08); font-weight: 700; }
-    td.net-win   { background: var(--gold-bg); font-weight: 700; }
-    td.both-win  { background: linear-gradient(135deg, rgba(0,103,71,.08) 50%, rgba(200,169,81,.08) 50%); font-weight: 700; }
+    td.gross-win { background: var(--augusta-bg); font-weight: 700; color: var(--augusta-dk); }
+    td.net-win   { background: var(--slate-bg); font-weight: 700; color: var(--slate-ink); }
+    td.both-win  { background: linear-gradient(135deg, var(--augusta-bg) 50%, var(--slate-bg) 50%); font-weight: 700; }
 
     .winner-badge {
       display: inline-block;
-      padding: 2px 10px;
+      padding: 3px 10px;
       border-radius: 20px;
       font-size: .68rem;
       font-weight: 700;
-      letter-spacing: .02em;
+      letter-spacing: .01em;
     }
-    .badge-gross { background: var(--augusta-bg); color: var(--augusta); }
-    .badge-net   { background: var(--gold-bg); color: var(--gold-dk); border: 1px solid rgba(200,169,81,.15); }
+    .badge-gross { background: var(--augusta-bg); color: var(--augusta-dk); }
+    .badge-net   { background: var(--slate-bg); color: var(--slate-ink); }
     .badge-none  { background: var(--parchment); color: var(--ink-dim); }
 
     .tally-table { width: 100%; border-collapse: collapse; }
@@ -586,18 +670,19 @@
       text-align: center;
     }
     .tally-table th {
-      background: var(--augusta);
-      color: #fff;
+      background: var(--linen);
+      color: var(--ink-mid);
+      border-bottom: 1px solid var(--border);
     }
     .tally-table tr:nth-child(even) td { background: var(--linen); }
 
     .section-label {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: .75rem;
-      font-weight: 600;
-      color: var(--gold-dk);
+      font-family: var(--font);
+      font-size: .72rem;
+      font-weight: 700;
+      color: var(--ink-mid);
       text-transform: uppercase;
-      letter-spacing: .16em;
+      letter-spacing: .08em;
       margin: 20px 0 10px;
     }
 
@@ -615,28 +700,41 @@
 
     /* Winner banner */
     .win-banner {
-      background: linear-gradient(135deg, var(--augusta) 0%, var(--augusta-dk) 100%);
-      border: 1.5px solid var(--gold);
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--augusta-lt) 0%, var(--augusta-dk) 100%);
+      border: 1px solid rgba(255,255,255,.14);
       border-radius: var(--radius-lg);
-      padding: 24px;
+      padding: 26px 24px;
       text-align: center;
-      box-shadow: var(--shadow-gold), 0 8px 30px rgba(0,103,71,.2);
+      box-shadow: 0 8px 30px rgba(10,125,84,.28);
       color: #fff;
     }
+    .win-banner > * { position: relative; z-index: 1; }
+    .win-banner.sweep::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: linear-gradient(105deg, transparent 32%, rgba(255,255,255,.30) 50%, transparent 68%);
+      transform: translateX(-130%);
+      animation: bannerSweep 900ms cubic-bezier(0.16, 1, 0.3, 1) 200ms both;
+    }
+    @keyframes bannerSweep { to { transform: translateX(130%); } }
     .win-name {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 1.4rem;
-      font-weight: 700;
+      font-family: var(--font);
+      font-size: 1.5rem;
+      font-weight: 800;
       margin-bottom: 6px;
-      letter-spacing: .02em;
-      text-shadow: 0 1px 3px rgba(0,0,0,.2);
+      letter-spacing: -.02em;
     }
     .win-detail {
-      font-size: .82rem;
-      color: var(--gold-lt);
+      font-size: .85rem;
+      color: rgba(255,255,255,.85);
     }
     .win-tie {
-      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-family: var(--font);
       font-size: 1.1rem;
       font-weight: 700;
       margin-bottom: 5px;
@@ -645,8 +743,7 @@
     /* ---- Nassau Settings ---- */
     .nassau-settings {
       background: var(--linen);
-      border: 1px solid var(--border-lt);
-      border-left: 3px solid var(--gold);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 14px 16px;
       display: none;
@@ -671,14 +768,14 @@
       border-radius: 5px;
       text-align: center;
       font-size: .9rem;
-      font-family: 'Libre Franklin', sans-serif;
+      font-family: var(--font);
       background: #fff;
       color: var(--ink);
     }
     .nassau-settings input[type="number"]:focus {
       outline: none;
       border-color: var(--gold);
-      box-shadow: 0 0 6px rgba(200,169,81,.2);
+      box-shadow: 0 0 6px rgba(10,125,84,.2);
     }
     .toggle-label {
       display: inline-flex;
@@ -732,6 +829,30 @@
     .mt-16  { margin-top: 16px; }
     .gap-10 { gap: 10px; }
     .flex   { display: flex; }
+
+    /* ---- The Ruling: results morph in via a View Transition ---- */
+    @media (prefers-reduced-motion: no-preference) {
+      ::view-transition-old(root) { animation: rulingOut .3s ease both; }
+      ::view-transition-new(root) { animation: rulingIn .5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+      @keyframes rulingOut { to { opacity: 0; } }
+      @keyframes rulingIn  {
+        from { opacity: 0; transform: translateY(12px) scale(.99); }
+        to   { opacity: 1; transform: none; }
+      }
+    }
+
+    /* ---- Reduced motion ---- */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+        scroll-behavior: auto !important;
+      }
+      ::view-transition-group(*),
+      ::view-transition-old(*),
+      ::view-transition-new(*) { animation: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -858,15 +979,13 @@
 <div id="step-2" class="hidden">
   <div class="card">
     <h2>Review Extracted Data</h2>
-    <p style="font-size:.85rem;color:var(--ink-dim);margin-bottom:14px;line-height:1.55;">
-      Check that pars, handicap ratings, scores, and handicap indices look correct. Edit any values that weren't read correctly.
+    <p class="review-intro">
+      Check the scores the AI read from your photo &mdash; every box is labeled with its hole number. Tap any value to fix it.
     </p>
 
-    <div class="table-outer">
-      <table id="review-table"></table>
-    </div>
+    <div id="review-root"></div>
 
-    <div class="flex gap-10" style="margin-bottom:14px;flex-wrap:wrap;">
+    <div class="flex gap-10" style="margin-top:16px;margin-bottom:14px;flex-wrap:wrap;">
       <button class="btn btn-secondary btn-sm" onclick="addPlayerRow()">+ Add Player</button>
       <button class="btn btn-secondary btn-sm" onclick="document.getElementById('extra-scorecard-input').click()">+ Add Another Scorecard</button>
       <input type="file" id="extra-scorecard-input" accept="image/*" style="display:none" onchange="mergeScorecard(this)" />
@@ -874,13 +993,7 @@
 
     <div id="error-2" class="error-msg"></div>
 
-    <p class="section-label">Choose Game</p>
-    <button class="btn btn-gold" onclick="calculateSkins()">Skins</button>
-    <button class="btn btn-primary mt-10" onclick="calculateBetterBall()">2 Net Better Ball</button>
-    <button class="btn btn-primary mt-10" onclick="calculateVegas()">Vegas</button>
-    <button class="btn btn-primary mt-10" onclick="calculateQuota()">Quota</button>
-
-    <div id="nassau-settings" class="nassau-settings mt-10">
+    <div id="nassau-settings" class="nassau-settings">
       <div class="nassau-setting-row">
         <label class="toggle-label">
           <input type="checkbox" id="nassau-presses" checked />
@@ -893,8 +1006,10 @@
         <input type="number" id="nassau-threshold" value="2" min="1" max="9" />
       </div>
     </div>
-    <button class="btn btn-primary mt-10" onclick="calculateNassau()">Nassau</button>
-    <button class="btn btn-secondary mt-10" onclick="goStep(1)">&larr; Back</button>
+
+    <button class="btn btn-gold mt-16" id="calculate-btn" onclick="runCalculation()">Calculate</button>
+    <button class="btn btn-secondary mt-10" onclick="goStep(1)">&larr; Back to Upload</button>
+    <button class="btn-link" onclick="goStep(0)">Change game</button>
   </div>
 </div>
 
@@ -1017,26 +1132,125 @@
     selectedGame:   null,
   };
 
+  /* -- Game registry: display name + calculation handler -- */
+  const GAMES = {
+    skins:      { label: "Skins",             run: () => calculateSkins() },
+    betterball: { label: "2 Net Better Ball", run: () => calculateBetterBall() },
+    vegas:      { label: "Vegas",             run: () => calculateVegas() },
+    quota:      { label: "Quota",             run: () => calculateQuota() },
+    nassau:     { label: "Nassau",            run: () => calculateNassau() },
+  };
+
+  /* -- Which results container belongs to each game (for the reveal) -- */
+  const RESULT_CONTAINERS = {
+    skins: "skins-results", quota: "quota-results", vegas: "vegas-results",
+    betterball: "bb-results", nassau: "nassau-results",
+  };
+  const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
   /* -- Navigation -- */
   function goStep(n) {
-    [0, 1, 2, 3].forEach(i => {
-      document.getElementById(`step-${i}`).classList.toggle("hidden", i !== n);
-    });
-    document.getElementById("step-dots").classList.toggle("hidden", n === 0);
-    if (n > 0) {
-      [1, 2, 3].forEach(i => {
-        const dot = document.getElementById(`dot-${i}`);
-        dot.classList.toggle("active", i === n);
-        dot.classList.toggle("done",   i < n);
+    const apply = () => {
+      [0, 1, 2, 3].forEach(i => {
+        document.getElementById(`step-${i}`).classList.toggle("hidden", i !== n);
       });
+      document.getElementById("step-dots").classList.toggle("hidden", n === 0);
+      if (n > 0) {
+        [1, 2, 3].forEach(i => {
+          const dot = document.getElementById(`dot-${i}`);
+          dot.classList.toggle("active", i === n);
+          dot.classList.toggle("done",   i < n);
+        });
+      }
+    };
+
+    // Step 3 is "The Ruling" — morph in via a View Transition, then reveal the result.
+    if (n === 3 && document.startViewTransition && !prefersReducedMotion()) {
+      window.scrollTo({ top: 0, behavior: "auto" });
+      const vt = document.startViewTransition(apply);
+      // The View Transition morphs the banner in with the page, so don't re-animate it.
+      vt.finished.then(() => revealResults(RESULT_CONTAINERS[state.selectedGame], false)).catch(() => {});
+    } else {
+      apply();
+      if (n === 3) revealResults(RESULT_CONTAINERS[state.selectedGame], true);
     }
+
+    if (n === 2) syncGameControls();
+  }
+
+  /* -- "The Ruling": orchestrate the winner reveal after results render -- */
+  function revealResults(containerId, animateBanner) {
+    if (prefersReducedMotion()) return;              // static result; nothing to animate
+    const root = containerId && document.getElementById(containerId);
+    if (!root || typeof root.animate !== "function") return;
+
+    // 1) The winner's banner settles in (only when a View Transition didn't already do it),
+    //    then a light sweep passes across it.
+    const banner = root.querySelector(".win-banner");
+    if (banner) {
+      if (animateBanner) {
+        banner.animate(
+          [{ opacity: 0, transform: "translateY(14px) scale(.97)" },
+           { opacity: 1, transform: "none" }],
+          { duration: 520, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "backwards" }
+        );
+      }
+      banner.classList.remove("sweep");
+      void banner.offsetWidth;                       // restart the CSS sweep each reveal
+      banner.classList.add("sweep");
+      root.querySelectorAll(".win-detail").forEach(countUpIn);
+    }
+
+    // 2) Winning cells pulse a green ring in reading order — the eye follows the result.
+    const cells = root.querySelectorAll("td.gross-win, td.net-win, td.both-win");
+    cells.forEach((cell, i) => {
+      cell.animate(
+        [{ boxShadow: "inset 0 0 0 0 rgba(10,125,84,0)" },
+         { boxShadow: "inset 0 0 0 2px rgba(10,125,84,.55)", offset: .35 },
+         { boxShadow: "inset 0 0 0 0 rgba(10,125,84,0)" }],
+        { duration: 600, delay: Math.min(i, 24) * 40, easing: "ease-out" }
+      );
+    });
+  }
+
+  /* -- Roll the first integer inside an element from 0 up to its value -- */
+  function countUpIn(el) {
+    const match = el.textContent.match(/\d[\d,]*/);
+    if (!match) return;
+    const target = parseInt(match[0].replace(/,/g, ""), 10);
+    if (!isFinite(target) || target <= 1) return;
+    const pre = el.textContent.slice(0, match.index);
+    const post = el.textContent.slice(match.index + match[0].length);
+    const dur = Math.min(950, 350 + target * 12);
+    const start = performance.now();
+    (function tick(now) {
+      const t = Math.min(1, (now - start) / dur);
+      const val = Math.round((1 - Math.pow(1 - t, 3)) * target);
+      el.textContent = pre + val + post;
+      if (t < 1) requestAnimationFrame(tick);
+    })(start);
+  }
+
+  /* -- Reflect the game chosen in Step 0 onto the Step 2 controls -- */
+  function syncGameControls() {
+    const game = state.selectedGame;
+    const btn  = document.getElementById("calculate-btn");
+    if (btn) btn.textContent = game && GAMES[game] ? `Calculate ${GAMES[game].label}` : "Calculate";
+    document.getElementById("nassau-settings").classList.toggle("show", game === "nassau");
   }
 
   /* -- Game selection -- */
   function selectGame(game) {
     state.selectedGame = game;
-    document.getElementById("nassau-settings").classList.toggle("show", game === 'nassau');
+    syncGameControls();
     goStep(1);
+  }
+
+  /* -- Step 2: run the pre-selected game's calculation -- */
+  function runCalculation() {
+    const game = GAMES[state.selectedGame];
+    if (!game) { showError("error-2", "Pick a game first."); return; }
+    game.run();
   }
 
   /* -- Step 1: file selection -- */
@@ -1117,84 +1331,93 @@
     }
   }
 
-  /* -- Step 2: render editable review table -- */
+  /* -- Step 2: render editable review (per-player cards) -- */
+  function courseSetupHtml(holes) {
+    const n = holes.length;
+    let cells = "";
+    for (let i = 0; i < n; i++) {
+      const num = holes[i].number ?? (i + 1);
+      const p   = holes[i].par ?? "";
+      const r   = holes[i].handicap_rating ?? "";
+      cells += `<div class='course-cell'>
+        <span class='hole-no'>${num}</span>
+        <label class='mini'><span>Par</span><input type='number' id='par-${i}' value='${p}' min='3' max='5' aria-label='Hole ${num} par' /></label>
+        <label class='mini'><span>SI</span><input type='number' id='hcp-${i}' value='${r}' min='1' max='18' aria-label='Hole ${num} stroke index' /></label>
+      </div>`;
+    }
+    return `<details class='course-setup' open>
+      <summary>Course setup &mdash; par &amp; stroke index</summary>
+      <div class='course-grid'>${cells}</div>
+    </details>`;
+  }
+
   function teamHeaderHtml(ti, teamName) {
-    const n = state.numHoles;
-    return `<tr id='team-header-${ti}' class='team-header-row' data-team='${ti}'>
-      <td class='label-cell' colspan='${n + 1}'>
-        Team: <input type='text' id='team-name-${ti}' value='${escHtml(teamName)}' placeholder='Team name' />
-      </td>
-    </tr>`;
+    return `<div class='team-section' data-team-header='${ti}'>
+      <label class='team-tag' for='team-name-${ti}'>Team</label>
+      <input type='text' id='team-name-${ti}' value='${escHtml(teamName)}' placeholder='Team name' />
+    </div>`;
+  }
+
+  function playerRowHtml(pi, name, hcpVal, scores, n, ti) {
+    let cells = "";
+    for (let i = 0; i < n; i++) {
+      const s = scores && scores[i] != null ? scores[i] : "X";
+      cells += `<label class='hole-cell'>
+        <span class='hole-no'>${i + 1}</span>
+        <input type='text' inputmode='numeric' id='score-${pi}-${i}' value='${s}' maxlength='3' aria-label='Hole ${i + 1} score' />
+      </label>`;
+    }
+    return `<div class='player-card' id='player-row-${pi}' data-team='${ti ?? 0}'>
+      <div class='player-card-head'>
+        <input class='pcard-name' type='text' id='pname-${pi}' value='${escHtml(name)}' placeholder='Player name' />
+        <div class='pcard-hcp'>
+          <label for='phcp-${pi}'>Handicap</label>
+          <input type='number' id='phcp-${pi}' value='${hcpVal}' min='0' max='54' placeholder='e.g. 12' />
+        </div>
+        <button class='pcard-remove' onclick='removePlayerRow(${pi})' aria-label='Remove player'>Remove</button>
+      </div>
+      <div class='score-grid'>${cells}</div>
+    </div>`;
   }
 
   function renderReviewTable(data) {
-    const table = document.getElementById("review-table");
-    const n     = data.holes.length;
+    const root = document.getElementById("review-root");
+    const n    = data.holes.length;
     state.numHoles      = n;
     state.nextPlayerIdx = 0;
     state.nextTeamIdx   = 0;
 
-    let html = "<thead><tr><th>Field</th>";
-    for (let i = 0; i < n; i++) html += `<th>${data.holes[i].number}</th>`;
-    html += "</tr></thead><tbody>";
+    const isTwoTeam    = state.selectedGame === 'nassau' || state.selectedGame === 'vegas';
+    const isIndividual = state.selectedGame === 'quota'  || state.selectedGame === 'skins';
 
-    html += "<tr><td class='label-cell'>Par</td>";
-    for (let i = 0; i < n; i++) {
-      const p = data.holes[i].par ?? "";
-      html += `<td><input type='number' id='par-${i}' value='${p}' min='3' max='5' /></td>`;
-    }
-    html += "</tr>";
-
-    html += "<tr><td class='label-cell'>HCP Rating</td>";
-    for (let i = 0; i < n; i++) {
-      const r = data.holes[i].handicap_rating ?? "";
-      html += `<td><input type='number' id='hcp-${i}' value='${r}' min='1' max='18' /></td>`;
-    }
-    html += "</tr>";
-
-    const isTwoTeam = state.selectedGame === 'nassau' || state.selectedGame === 'vegas';
-    const isIndividual = state.selectedGame === 'quota' || state.selectedGame === 'skins';
+    let players = "";
     if (!isIndividual) {
-      html += teamHeaderHtml(0, "Team 1");
+      players += teamHeaderHtml(0, "Team 1");
       state.nextTeamIdx = 1;
     }
     data.players.forEach((p, idx) => {
       if (isTwoTeam && idx === 2) {
-        html += teamHeaderHtml(1, "Team 2");
+        players += teamHeaderHtml(1, "Team 2");
         state.nextTeamIdx = 2;
       }
       const pi = state.nextPlayerIdx++;
       const ti = (isTwoTeam && idx >= 2) ? 1 : 0;
-      html += playerRowHtml(pi, p.name, p.handicap ?? "", p.scores, n, ti);
+      players += playerRowHtml(pi, p.name, p.handicap ?? "", p.scores, n, ti);
     });
 
-    html += "</tbody>";
-    table.innerHTML = html;
+    root.innerHTML = courseSetupHtml(data.holes) + `<div id="players-list">${players}</div>`;
   }
 
-  function playerRowHtml(pi, name, hcpVal, scores, n, ti) {
-    let html = `<tr id='player-row-${pi}' data-team='${ti ?? 0}'>`;
-    html += `<td class='label-cell'>
-      <div class='player-meta'>
-        <input type='text' id='pname-${pi}' value='${escHtml(name)}' placeholder='Name' />
-        <label>Handicap Index</label>
-        <input type='number' id='phcp-${pi}' value='${hcpVal}' min='0' max='54' placeholder='e.g. 12' />
-        <button class='btn btn-danger btn-sm' onclick='removePlayerRow(${pi})' style='margin-top:4px;'>Remove</button>
-      </div>
-    </td>`;
-    for (let i = 0; i < n; i++) {
-      const s = scores && scores[i] != null ? scores[i] : "X";
-      html += `<td><input type='text' inputmode='numeric' id='score-${pi}-${i}' value='${s}' maxlength='3' /></td>`;
-    }
-    html += "</tr>";
-    return html;
+  /* All player lookups route through here, so the read logic stays layout-agnostic. */
+  function playerRows() {
+    return document.querySelectorAll('#players-list [id^="player-row-"]');
   }
 
   function addPlayerRow() {
-    const tbody  = document.querySelector("#review-table tbody");
+    const list   = document.getElementById("players-list");
     const lastTi = Math.max(0, state.nextTeamIdx - 1);
     const pi     = state.nextPlayerIdx++;
-    tbody.insertAdjacentHTML("beforeend", playerRowHtml(pi, "", "", [], state.numHoles, lastTi));
+    list.insertAdjacentHTML("beforeend", playerRowHtml(pi, "", "", [], state.numHoles, lastTi));
   }
 
   function removePlayerRow(pi) {
@@ -1223,8 +1446,7 @@
     }
 
     const players = [];
-    const tbody   = document.querySelector("#review-table tbody");
-    const rows    = tbody.querySelectorAll("tr[id^='player-row-']");
+    const rows    = playerRows();
     for (const row of rows) {
       const pi       = row.id.split("-")[2];
       const name     = document.getElementById(`pname-${pi}`)?.value.trim();
@@ -1358,8 +1580,7 @@
     }
 
     const players = [];
-    const tbody   = document.querySelector("#review-table tbody");
-    const rows    = tbody.querySelectorAll("tr[id^='player-row-']");
+    const rows    = playerRows();
     for (const row of rows) {
       const pi       = row.id.split("-")[2];
       const name     = document.getElementById(`pname-${pi}`)?.value.trim();
@@ -1503,12 +1724,12 @@
       const body = await res.json();
       if (!res.ok || !body.success) throw new Error(body.error || "Unknown error from server.");
 
-      const tbody = document.querySelector("#review-table tbody");
-      const ti    = state.nextTeamIdx++;
-      tbody.insertAdjacentHTML("beforeend", teamHeaderHtml(ti, `Team ${ti + 1}`));
+      const list = document.getElementById("players-list");
+      const ti   = state.nextTeamIdx++;
+      list.insertAdjacentHTML("beforeend", teamHeaderHtml(ti, `Team ${ti + 1}`));
       body.data.players.forEach(p => {
         const pi = state.nextPlayerIdx++;
-        tbody.insertAdjacentHTML("beforeend", playerRowHtml(pi, p.name, p.handicap ?? "", p.scores, state.numHoles, ti));
+        list.insertAdjacentHTML("beforeend", playerRowHtml(pi, p.name, p.handicap ?? "", p.scores, state.numHoles, ti));
       });
 
     } catch (err) {
@@ -1535,8 +1756,7 @@
     }
 
     const players = [];
-    const tbody   = document.querySelector("#review-table tbody");
-    const rows    = tbody.querySelectorAll("tr[id^='player-row-']");
+    const rows    = playerRows();
 
     for (const row of rows) {
       const pi      = row.id.split("-")[2];
@@ -1670,7 +1890,6 @@
   /* -- Step 2: collect teams from review table (for Better Ball) -- */
   function collectTeams() {
     const n      = state.numHoles;
-    const tbody  = document.querySelector("#review-table tbody");
     const teamsMap = {};
 
     for (let ti = 0; ti < state.nextTeamIdx; ti++) {
@@ -1678,7 +1897,7 @@
       teamsMap[ti] = { name: nameEl ? nameEl.value.trim() || `Team ${ti + 1}` : `Team ${ti + 1}`, players: [] };
     }
 
-    const rows = tbody.querySelectorAll("tr[id^='player-row-']");
+    const rows = playerRows();
     for (const row of rows) {
       const pi  = row.id.split("-")[2];
       const ti  = parseInt(row.getAttribute("data-team") ?? 0);
@@ -1823,8 +2042,7 @@
     }
 
     const players = [];
-    const tbody   = document.querySelector("#review-table tbody");
-    const rows    = tbody.querySelectorAll("tr[id^='player-row-']");
+    const rows    = playerRows();
     for (const row of rows) {
       const pi       = row.id.split("-")[2];
       const name     = document.getElementById(`pname-${pi}`)?.value.trim();
@@ -1911,7 +2129,7 @@
       const seg = data[key];
       if (!seg) return;
       betsHtml += `<div style="margin-bottom:18px;">
-        <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:.78rem;font-weight:600;color:var(--gold-dk);text-transform:uppercase;letter-spacing:.16em;margin-bottom:8px;">${label}</div>`;
+        <div style="font-family:var(--font);font-size:.72rem;font-weight:700;color:var(--ink-mid);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">${label}</div>`;
 
       seg.matches.forEach(m => {
         const winnerName = m.winner === 1 ? t1Name : m.winner === 2 ? t2Name : null;
@@ -1921,11 +2139,11 @@
         const matchLabel = m.is_auto
           ? `Press ${m.match_num} (holes ${m.start_hole}\u2013${m.end_hole})`
           : `Original (holes ${m.start_hole}\u2013${m.end_hole})`;
-        const border = m.is_auto ? "border-left:4px solid var(--gold);" : "border-left:4px solid var(--augusta);";
+        const cardBg = m.is_auto ? "var(--augusta-bg)" : "var(--linen)";
 
-        betsHtml += `<div style="border:1px solid var(--border-lt);border-radius:var(--radius);padding:12px 16px;margin-bottom:8px;background:var(--linen);${border}">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:.82rem;font-weight:600;">${matchLabel}</span>
+        betsHtml += `<div style="border:1px solid var(--border-lt);border-radius:var(--radius);padding:12px 16px;margin-bottom:8px;background:${cardBg};">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+            <span style="font-size:.82rem;font-weight:600;color:var(--ink);">${matchLabel}</span>
             ${winHtml}
           </div>
         </div>`;
