@@ -684,7 +684,7 @@
       display: flex; align-items: center; justify-content: space-between; gap: 12px;
       padding: 14px 16px; font-size: .92rem; color: var(--ink-mid);
     }
-    .removed-strip .undo-btn { font-size: .92rem; }
+    .removed-strip .undo-btn { display: inline-flex; align-items: center; min-height: 44px; margin: -6px 0; padding: 0 8px; font-size: .92rem; }
 
     .score-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 8px; }
     .hole-cell { display: flex; flex-direction: column; align-items: center; gap: 3px; }
@@ -1390,6 +1390,33 @@
   };
   const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  /* -- Motion helpers: state feedback only, every call reduced-motion-safe.
+        (The global CSS reduced-motion rule doesn't govern the Web Animations API,
+        so each helper checks prefersReducedMotion itself.) -- */
+  const EASE_OUT_EXPO = "cubic-bezier(0.16, 1, 0.3, 1)";
+  const canAnimate = el => el && typeof el.animate === "function" && !prefersReducedMotion();
+
+  // Fade + rise an element in once — acknowledges content that just appeared.
+  function riseIn(el, { dur = 260, dy = 6, delay = 0 } = {}) {
+    if (!canAnimate(el)) return;
+    el.animate(
+      [{ opacity: 0, transform: `translateY(${dy}px)` }, { opacity: 1, transform: "none" }],
+      { duration: dur, delay, easing: EASE_OUT_EXPO, fill: "backwards" }
+    );
+  }
+
+  // Brief red ring on a flagged field so the eye finds what needs fixing. Settles
+  // onto the resting .input-invalid glow, so there's no jump when it ends.
+  function pulseInvalid(el, delay = 0) {
+    if (!canAnimate(el)) return;
+    el.animate(
+      [{ boxShadow: "0 0 0 0 rgba(200,50,75,0)" },
+       { boxShadow: "0 0 0 3px rgba(200,50,75,.38)", offset: .4 },
+       { boxShadow: "0 0 0 3px rgba(200,50,75,.18)" }],
+      { duration: 480, delay, easing: "ease-out" }
+    );
+  }
+
   /* -- Navigation -- */
   function goStep(n) {
     const apply = () => {
@@ -1532,6 +1559,7 @@
     // announce the mutation more reliably once the node is actually rendered.
     el.classList.add("show");
     el.textContent = msg;
+    riseIn(el, { dur: 220, dy: 4 });
     // Make sure the banker actually sees it, even on a long scrolled page.
     // Callers that scroll to a specific bad field instead pass { scroll: false }.
     if (!opts || opts.scroll !== false) {
@@ -1748,6 +1776,8 @@
       first.scrollIntoView({ block: "center", behavior: prefersReducedMotion() ? "auto" : "smooth" });
       try { first.focus({ preventScroll: true }); } catch (_) { first.focus(); }
     }
+    // Pulse every flagged field in reading order so none get missed.
+    problems.forEach((p, i) => pulseInvalid(p.el, Math.min(i, 12) * 45));
     return false;
   }
 
@@ -1771,6 +1801,7 @@
     const lastTi = Math.max(0, state.nextTeamIdx - 1);
     const pi     = state.nextPlayerIdx++;
     list.insertAdjacentHTML("beforeend", playerRowHtml(pi, "", "", [], state.numHoles, lastTi));
+    riseIn(document.getElementById(`player-row-${pi}`), { dur: 280, dy: 10 });
   }
 
   // Removing a player is undoable: the card collapses to an "Undo" strip and its
@@ -1793,6 +1824,7 @@
     undo.addEventListener("click", () => undoRemovePlayer(pi));
     strip.appendChild(undo);
     row.appendChild(strip);
+    riseIn(strip, { dur: 200, dy: 4 });
 
     pendingRemovals[pi] = setTimeout(() => finalizeRemovePlayer(pi), 8000);
   }
@@ -1804,6 +1836,7 @@
     row.classList.remove("row-removed");
     const strip = row.querySelector(".removed-strip");
     if (strip) strip.remove();
+    riseIn(row, { dur: 220, dy: 4 });            // fade the card back in on undo
   }
   function finalizeRemovePlayer(pi) {
     const row = document.getElementById(`player-row-${pi}`);
@@ -2234,6 +2267,7 @@
     const active = nets.some(p => Math.abs(p.net) > 0.005);
     if (!active) {
       el.innerHTML = `<p class='settlement-empty'>${escHtml(emptyMsg)}</p>`;
+      delete el.dataset.filled;                    // re-arm the reveal for next time
       return;
     }
     let html = "";
@@ -2254,6 +2288,9 @@
       html += "</div>";
     }
     el.innerHTML = html;
+    // Rise the money into view the first time it populates — the payoff gets one
+    // beat. Live recomputes as the banker edits the stake don't re-animate.
+    if (!el.dataset.filled) { riseIn(el, { dur: 300, dy: 8 }); el.dataset.filled = "1"; }
   }
 
   // Split a team-level net evenly across its players (team games settle per player).
